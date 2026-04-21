@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proceso de Secado — Asistente de Planta Digital</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap');
+:root{
+  --cafe:#3E1C00;--cafe-mid:#6F3A12;--crema:#F5ECD7;
+  --gris:#F4F1EC;--txt:#1A0A00;--txt-s:#6B4C2A;
+  --verde:#2E7D32;--verde-lt:#E8F5E9;
+  --ambar:#E65100;--ambar-lt:#FFF3E0;
+  --rojo:#C62828;--rojo-lt:#FFEBEE;
+  --azul:#0C447C;--azul-lt:#E6F1FB;
+  --solar:#F9A825;--solar-lt:#FFFDE7;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--gris);color:var(--txt);min-height:100vh}
+header{background:var(--cafe);padding:14px 18px}
+.h-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px}
+.h-empresa{font-family:'DM Serif Display',serif;color:#C8860A;font-size:17px}
+.h-sub{color:var(--crema);font-size:12px;margin-top:2px;opacity:.85}
+.h-badge{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:10px;padding:3px 10px;border-radius:20px;font-weight:600}
+.h-title{text-align:center;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.15)}
+.h-title span{font-family:'DM Serif Display',serif;font-size:20px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.5);letter-spacing:.06em}
+.wrap{padding:14px 16px}
+.card{background:#fff;border-radius:12px;border:1px solid #E8DDD0;padding:14px;margin-bottom:14px}
+.card-t{font-size:12px;font-weight:600;color:var(--cafe);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #F0E8DC}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:11px;color:var(--txt-s);font-weight:500}
+.field input,.field select{border:1px solid #D4C5B0;border-radius:6px;padding:7px 9px;font-size:13px;font-family:'DM Sans',sans-serif;background:#FFFBEA;color:var(--txt)}
+.field input:focus,.field select:focus{outline:none;border-color:var(--cafe-mid)}
+.field input[readonly]{background:#F4F1EC;color:var(--txt-s)}
+.tipo-secador-row{display:flex;gap:10px;margin-bottom:14px}
+.tipo-btn{flex:1;border:2px solid #D4C5B0;border-radius:8px;padding:10px 8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;background:#fff;color:var(--txt-s);text-align:center;transition:all .2s}
+.tipo-btn.activo-electrico{border-color:var(--azul);background:var(--azul-lt);color:var(--azul)}
+.tipo-btn.activo-solar{border-color:var(--solar);background:var(--solar-lt);color:#7A6000}
+.tipo-btn .tipo-icon{font-size:20px;display:block;margin-bottom:3px}
+.btn{border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-primary{background:var(--cafe);color:var(--crema)}
+.btn-secondary{background:#fff;color:var(--cafe);border:1.5px solid var(--cafe-mid)}
+.btn-verde{background:var(--verde);color:#fff}
+.btn-sm{padding:6px 12px;font-size:11px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:14px}
+.kpi{background:#fff;border-radius:10px;padding:10px 12px;border:1px solid #E8DDD0}
+.kpi-l{font-size:10px;color:var(--txt-s);margin-bottom:3px;font-weight:500}
+.kpi-v{font-size:20px;font-weight:600;color:var(--cafe);line-height:1.1}
+.kpi-s{font-size:10px;color:var(--txt-s);margin-top:2px}
+.kpi.hl{border-color:var(--cafe-mid);background:var(--crema)}
+.kpi.ok{border-color:var(--verde);background:var(--verde-lt)}
+.kpi.warn{border-color:var(--rojo);background:var(--rojo-lt)}
+.kpi.solar-kpi{border-color:var(--solar);background:var(--solar-lt)}
+.alert{border-radius:8px;padding:10px 14px;font-size:12px;line-height:1.7;border-left:4px solid;margin-bottom:12px}
+.alert.rojo{background:var(--rojo-lt);border-color:var(--rojo);color:#7B1A1A}
+.alert.azul{background:var(--azul-lt);border-color:var(--azul);color:#042C53}
+.alert.verde{background:var(--verde-lt);border-color:var(--verde);color:#1A4A1C}
+.alert.solar{background:var(--solar-lt);border-color:var(--solar);color:#5A4500}
+.chart-wrap{position:relative;height:300px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--cafe);color:#C8860A;padding:7px 8px;text-align:left;font-weight:600;font-size:11px}
+td{padding:7px 8px;border-bottom:1px solid #F0E8DC;color:var(--txt)}
+tr:last-child td{border:none}
+tr:nth-child(even) td{background:#FAFAF8}
+.badge{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600}
+.badge-verde{background:var(--verde);color:#fff}
+.badge-ambar{background:var(--ambar);color:#fff}
+.sync-bar{background:var(--cafe);color:var(--crema);font-size:11px;padding:6px 16px;display:flex;justify-content:space-between;align-items:center}
+.hidden{display:none}
+.divider{height:1px;background:#E8DDD0;margin:12px 0}
+.warn-pf{font-size:11px;margin-top:4px;display:none}
+@media(max-width:480px){.form-grid{grid-template-columns:1fr 1fr}.kpi-v{font-size:17px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-top">
+    <div>
+      <div class="h-empresa">CITEagroindustrial Huallaga</div>
+      <div class="h-sub">Proceso de Secado · Amazonía Peruana</div>
+    </div>
+    <span class="h-badge" id="sync-badge">● Sin sincronizar</span>
+  </div>
+  <div class="h-title"><span>ASISTENTE DE PLANTA DIGITAL</span></div>
+</header>
+
+<div class="sync-bar">
+  <span id="sync-status">📦 Datos guardados localmente</span>
+  <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)" onclick="intentarSync()">↑ Sincronizar</button>
+</div>
+
+<div class="wrap">
+<div class="card">
+  <div class="card-t">📋 Datos de la tanda</div>
+
+  <div style="font-size:11px;color:var(--txt-s);font-weight:500;margin-bottom:6px">Tipo de secador</div>
+  <div class="tipo-secador-row">
+    <button class="tipo-btn activo-electrico" id="btn-electrico" onclick="setTipoSecador('electrico')">
+      <span class="tipo-icon">⚡</span>Secador Eléctrico
+    </button>
+    <button class="tipo-btn" id="btn-solar" onclick="setTipoSecador('solar')">
+      <span class="tipo-icon">☀️</span>Secador Solar
+    </button>
+  </div>
+
+  <div class="form-grid">
+    <div class="field" style="grid-column:1/-1">
+      <label>Nombre del emprendedor</label>
+      <input type="text" id="emprendedor" placeholder="Tu nombre completo">
+    </div>
+    <div class="field">
+      <label>Producto</label>
+      <select id="producto" onchange="onProductoChange()">
+        <option value="">— Selecciona —</option>
+        <option value="Plátano">Plátano</option>
+        <option value="Piña">Piña</option>
+        <option value="Mango">Mango</option>
+        <option value="Aguaymanto">Aguaymanto</option>
+        <option value="Yuca">Yuca</option>
+        <option value="Pituca">Pituca</option>
+        <option value="Manzana">Manzana</option>
+        <option value="Coco">Coco (rallado)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Peso inicial Pi (kg)</label>
+      <input type="number" id="Pi" placeholder="ej. 45" min="0.1" step="0.1">
+    </div>
+    <div class="field" id="campo-espesor">
+      <label>Espesor rodaja L (mm)</label>
+      <input type="number" id="espesor" placeholder="ej. 4" min="1" max="30" step="0.5">
+    </div>
+    <div class="field">
+      <label>Humedad inicial Hi (%)</label>
+      <input type="number" id="Hi" placeholder="%" min="1" max="99" step="0.1">
+    </div>
+    <div class="field">
+      <label>Humedad final deseada Hf (%)</label>
+      <input type="number" id="Hf" value="10" min="1" max="50" step="0.1">
+    </div>
+    <div class="field">
+      <label>Temperatura secador Ts (°C)</label>
+      <input type="number" id="Ts" value="60" min="30" max="90" step="1">
+    </div>
+    <div class="field">
+      <label>HR ambiente (%)</label>
+      <input type="number" id="HR" placeholder="del higrómetro" min="10" max="99" step="1">
+    </div>
+    <div class="field">
+      <label>Temperatura ambiente Tamb (°C)</label>
+      <input type="number" id="Tamb" value="28" min="10" max="45" step="0.5">
+    </div>
+    <div class="field campo-electrico">
+      <label>Potencia equipo (kW)</label>
+      <input type="number" id="potencia" value="4" min="0.5" max="50" step="0.1">
+    </div>
+    <div class="field campo-electrico">
+      <label>Costo energía (S/./kWh)</label>
+      <input type="number" id="tarifa" value="0.82" min="0.1" max="5" step="0.01">
+    </div>
+    <div class="field">
+      <label>Hora de inicio (HH:MM)</label>
+      <input type="time" id="hora_inicio">
+    </div>
+  </div>
+  <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn btn-primary" onclick="calcular()">▶ Calcular / Iniciar tanda</button>
+    <button class="btn btn-secondary" onclick="limpiar()">↺ Limpiar</button>
+  </div>
+</div>
+
+<div id="alerta-xe"   class="alert rojo hidden"></div>
+<div id="alerta-info" class="alert azul hidden"></div>
+
+<div id="resultados" class="hidden">
+  <div style="font-size:10px;font-weight:600;color:var(--txt-s);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Resultados estimados</div>
+  <div class="kpi-grid" id="kpis"></div>
+
+  <div class="card">
+    <div class="card-t">📈 Curva de secado</div>
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--txt-s);margin-top:6px">
+      <span style="color:#C62828;font-weight:600">—— Humedad (%) teórica</span>
+      <span style="color:#0C447C;font-weight:600">—— Peso (kg) teórico</span>
+      <span style="color:#FF7043">— — Humedad ajustada</span>
+      <span style="color:#2E7D32">- - Meta Hf</span>
+      <span>● Pesadas reales</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-t">📉 Curva de Secado Muestra</div>
+    <div class="form-grid" style="margin-bottom:12px">
+      <div class="field">
+        <label>Hora medición (h desde inicio)</label>
+        <input type="number" id="hora_pesada" placeholder="ej. 0" min="0" step="0.25">
+      </div>
+      <div class="field">
+        <label>Peso de muestra (g)</label>
+        <input type="number" id="peso_pesada" placeholder="ej. 320" min="1" step="0.1">
+      </div>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="agregarPesada()">+ Agregar pesada</button>
+    <div id="tiempo-restante" class="alert azul hidden" style="margin-top:10px"></div>
+    <div class="divider"></div>
+    <table>
+      <thead><tr><th>Hora (h)</th><th>Peso muestra (g)</th><th>Humedad real (%)</th><th>k ajustado</th><th>Δ vs teórico</th></tr></thead>
+      <tbody id="tbody-pesadas"><tr><td colspan="5" style="text-align:center;color:var(--txt-s)">Sin pesadas aún</td></tr></tbody>
+    </table>
+
+    <div id="grafico-muestra-wrap" class="hidden" style="margin-top:14px">
+      <div style="font-size:11px;font-weight:600;color:var(--cafe);margin-bottom:8px">
+        📉 Curva de secado — Muestra de campo
+      </div>
+      <div style="position:relative;height:240px">
+        <canvas id="chart-muestra"></canvas>
+      </div>
+      <div style="font-size:11px;color:var(--txt-s);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap">
+        <span style="color:#000;font-weight:600">—— Humedad muestra (%)</span>
+        <span style="color:#C62828">- - Meta Hf%</span>
+        <span style="color:#0C447C">—— Peso muestra (g)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-t">✅ Finalizar tanda</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Peso final real (kg)</label>
+        <input type="number" id="Pf_real" placeholder="kg en balanza" min="0.1" step="0.01" oninput="calcularFin()">
+        <div class="warn-pf" id="warn-pf"></div>
+      </div>
+      <div class="field">
+        <label>Hora de fin (HH:MM) — opcional</label>
+        <input type="time" id="hora_fin" oninput="calcularFin()">
+      </div>
+      <div class="field">
+        <label>Hf real calculada (%)</label>
+        <input type="number" id="Hf_real_out" readonly placeholder="—">
+      </div>
+      <div class="field">
+        <label>Peso final estimado (kg)</label>
+        <input type="number" id="Pf_est_out" readonly placeholder="—">
+      </div>
+      <div class="field">
+        <label>Tiempo real (h)</label>
+        <input type="number" id="t_real_out" readonly placeholder="—">
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn btn-verde" onclick="guardarTanda()">💾 Guardar tanda</button>
+    </div>
+    <div id="msg-guardado" class="hidden" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-t">📂 Historial local</div>
+  <div id="historial-body"><p style="font-size:12px;color:var(--txt-s)">Sin registros guardados.</p></div>
+</div>
+</div>
+
+<script>
+// CORRECCIÓN 3: URL real del Apps Script
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgWLhLpdtLp6iwMTPAo4a0PrMMiGNgaNED-Sb_id5EizdZ7_47WG-AslCKctcFk_Gq/exec";
+
+let tipoSecador = 'electrico';
+
+function setTipoSecador(tipo) {
+  tipoSecador = tipo;
+  document.getElementById('btn-electrico').className = 'tipo-btn' + (tipo==='electrico' ? ' activo-electrico' : '');
+  document.getElementById('btn-solar').className     = 'tipo-btn' + (tipo==='solar'     ? ' activo-solar'     : '');
+  document.querySelectorAll('.campo-electrico').forEach(el => {
+    el.classList.toggle('hidden', tipo === 'solar');
+  });
+}
+
+const PRODUCTOS = {
+  "Plátano":    {k:0.350, n:1.08, Hi:75,  ocultar_espesor:false, L_ref:4,  espesor_ref:"4mm"},
+  "Piña":       {k:0.280, n:1.21, Hi:90,  ocultar_espesor:false, L_ref:5,  espesor_ref:"5mm"},
+  "Mango":      {k:0.240, n:1.31, Hi:82,  ocultar_espesor:false, L_ref:5,  espesor_ref:"5mm"},
+  "Aguaymanto": {k:0.180, n:1.42, Hi:85,  ocultar_espesor:false, L_ref:4,  espesor_ref:"4mm"},
+  "Yuca":       {k:0.420, n:0.98, Hi:65,  ocultar_espesor:false, L_ref:4,  espesor_ref:"4mm"},
+  "Pituca":     {k:0.350, n:1.05, Hi:70,  ocultar_espesor:false, L_ref:4,  espesor_ref:"4mm"},
+  "Manzana":    {k:0.310, n:1.19, Hi:84,  ocultar_espesor:false, L_ref:5,  espesor_ref:"5mm"},
+  "Coco":       {k:0.190, n:1.15, Hi:45,  ocultar_espesor:true,  L_ref:null, espesor_ref:"rallado"},
+};
+
+const TABLA_XE = {
+  25:{20:2.5,30:3.8,40:5.2,50:6.8,60:9.1,70:12.4,80:17.2,90:26.0},
+  30:{20:2.3,30:3.5,40:4.9,50:6.4,60:8.6,70:11.8,80:16.5,90:25.0},
+  35:{20:2.1,30:3.2,40:4.6,50:6.0,60:8.1,70:11.2,80:15.8,90:24.0},
+  40:{20:1.9,30:3.0,40:4.3,50:5.7,60:7.7,70:10.7,80:15.2,90:23.1},
+};
+
+function interpolarXe(HR, Tamb) {
+  Tamb = Math.max(25, Math.min(40, Tamb));
+  HR   = Math.max(20, Math.min(90, HR));
+  const temps = Object.keys(TABLA_XE).map(Number).sort((a,b)=>a-b);
+  const t_lo  = Math.max(...temps.filter(t => t <= Tamb));
+  const t_hi  = Math.min(...temps.filter(t => t >= Tamb));
+  const hrs   = Object.keys(TABLA_XE[t_lo]).map(Number).sort((a,b)=>a-b);
+  const hr_lo = Math.max(...hrs.filter(h => h <= HR));
+  const hr_hi = Math.min(...hrs.filter(h => h >= HR));
+  function interpHR(t) {
+    if (hr_lo === hr_hi) return TABLA_XE[t][hr_lo];
+    const f = (HR - hr_lo) / (hr_hi - hr_lo);
+    return TABLA_XE[t][hr_lo] + f * (TABLA_XE[t][hr_hi] - TABLA_XE[t][hr_lo]);
+  }
+  if (t_lo === t_hi) return Math.round(interpHR(t_lo) * 10) / 10;
+  const f_t = (Tamb - t_lo) / (t_hi - t_lo);
+  return Math.round((interpHR(t_lo) + f_t * (interpHR(t_hi) - interpHR(t_lo))) * 10) / 10;
+}
+
+function tiempoAnalitico(k, n, X0_bs, Xe_bs, Xtarget_bs) {
+  const MR = (Xtarget_bs - Xe_bs) / (X0_bs - Xe_bs);
+  if (MR <= 0 || MR >= 1) return null;
+  return Math.pow(-Math.log(MR) / k, 1 / n);
+}
+
+function simularCurva(k, n, X0_bs, Xe_bs, Xstop_bs, t_max) {
+  const DT = 0.25, puntos = [];
+  let t = 0;
+  const tLimite = Math.max(t_max || 48, 48);
+  while (t <= tLimite) {
+    const MR  = Math.exp(-k * Math.pow(Math.max(t, 0.0001), n));
+    const X_bs = MR * (X0_bs - Xe_bs) + Xe_bs;
+    const X_c  = Math.max(X_bs, Xe_bs);
+    puntos.push({t: r2(t), X_bs: r2(X_c), Hbh: r2(X_c / (1 + X_c) * 100)});
+    if (t > 0 && X_bs <= Xstop_bs && t >= (t_max || 0)) break;
+    if (t >= tLimite) break;
+    t = r2(t + DT);
+  }
+  return puntos;
+}
+
+function r2(n) { return Math.round(n * 100) / 100; }
+function r1(n) { return Math.round(n * 10) / 10; }
+
+let curvaData = [], pesadas = [], estadoTanda = null, myChart = null;
+let myChartMuestra = null;
+
+function onProductoChange() {
+  const prod = document.getElementById('producto').value;
+  if (!prod) return;
+  const p = PRODUCTOS[prod];
+  document.getElementById('Hi').value = p.Hi;
+  const campoEsp = document.getElementById('campo-espesor');
+  const inpEsp   = document.getElementById('espesor');
+  if (p.ocultar_espesor) {
+    campoEsp.classList.add('hidden');
+  } else {
+    campoEsp.classList.remove('hidden');
+    inpEsp.value = p.L_ref;
+    inpEsp.placeholder = `ref: ${p.espesor_ref}`;
+  }
+}
+
+function calcular() {
+  const prod = document.getElementById('producto').value;
+  if (!prod) { alert('Selecciona un producto'); return; }
+  const Pi = parseFloat(document.getElementById('Pi').value);
+  if (!Pi || Pi <= 0) { alert('Ingresa el peso inicial'); return; }
+
+  const p    = PRODUCTOS[prod];
+  const Hi   = parseFloat(document.getElementById('Hi').value) || p.Hi;
+  const Hf   = parseFloat(document.getElementById('Hf').value) || 10;
+  const Ts   = parseFloat(document.getElementById('Ts').value) || 60;
+  const HR   = parseFloat(document.getElementById('HR').value) || 70;
+  const Tamb = parseFloat(document.getElementById('Tamb').value) || 28;
+
+  const pot = tipoSecador === 'electrico' ? (parseFloat(document.getElementById('potencia').value) || 4) : null;
+  const tar = tipoSecador === 'electrico' ? (parseFloat(document.getElementById('tarifa').value) || 0.82) : null;
+
+  let k, L_real = null;
+  if (p.ocultar_espesor) {
+    k = p.k;
+  } else {
+    L_real = parseFloat(document.getElementById('espesor').value) || p.L_ref;
+    k = r2(p.k / Math.pow(L_real / p.L_ref, 2));
+  }
+  const n = p.n;
+
+  const Xe_bh = interpolarXe(HR, Tamb);
+  const Xe_bs = Xe_bh / (100 - Xe_bh);
+  const X0_bs = Hi / (100 - Hi);
+  const Ws    = r2(Pi * (1 - Hi / 100));
+
+  const alertaXe    = Hf < Xe_bh;
+  const Hf_efectivo = alertaXe ? Xe_bh : Hf;
+
+  const alertaEl = document.getElementById('alerta-xe');
+  if (alertaXe) {
+    alertaEl.classList.remove('hidden');
+    alertaEl.innerHTML = `⚠️ Con HR=${HR}% y Tamb=${Tamb}°C no es posible alcanzar ${Hf}% de humedad.<br>
+      Mínimo alcanzable: <strong>${Xe_bh}%</strong>. Ventile el secador o espere condición más seca.`;
+  } else {
+    alertaEl.classList.add('hidden');
+  }
+
+  const Xf_bs    = Hf_efectivo / (100 - Hf_efectivo);
+  const Xstop_bs = (Xe_bh + 0.5) / (100 - (Xe_bh + 0.5));
+  const Xtarget  = Math.max(Xf_bs, Xstop_bs);
+
+  const t_page_raw = tiempoAnalitico(k, n, X0_bs, Xe_bs, Xtarget);
+  const t_page     = t_page_raw != null ? r2(t_page_raw) : 48;
+
+  const MR_fin = Math.exp(-k * Math.pow(t_page, n));
+  const X_fin  = MR_fin * (X0_bs - Xe_bs) + Xe_bs;
+  const Pf_est = r2(Ws * (1 + X_fin));
+  const Wev    = r2(Pi - Pf_est);
+  const rend   = r1((Pf_est / Pi) * 100);
+
+  let t_energ, t_final, tPractico, EkWh_real, costo_real;
+
+  if (tipoSecador === 'electrico') {
+    const EkWh_teo = r2(Wev * 1200 / 860);
+    t_energ    = r2(EkWh_teo / pot);
+    t_final    = r2(Math.max(t_page, t_energ));
+    const ajuste = HR > 80 ? 1.25 : 1.0;
+    tPractico  = r2(t_final * ajuste);
+    EkWh_real  = r2(pot * t_final);
+    costo_real = r2(EkWh_real * tar);
+  } else {
+    t_energ    = null;
+    t_final    = t_page;
+    const ajuste = HR > 80 ? 1.25 : 1.0;
+    tPractico  = r2(t_final * ajuste);
+    EkWh_real  = null;
+    costo_real = null;
+  }
+
+  curvaData = simularCurva(k, n, X0_bs, Xe_bs, Xstop_bs, tPractico);
+
+  estadoTanda = {
+    prod, Pi, Hi, Hf, Hf_efectivo, Ts, Tamb, HR,
+    Xe_bh, Xe_bs, k, k_tabla: p.k, n,
+    X0_bs, Xf_bs, Xstop_bs, Ws,
+    t_page, t_energ, t_final, tPractico,
+    Pf_est, Wev, EkWh_real, rend, costo_real, pot, tar, alertaXe,
+    L_real, L_ref: p.L_ref,
+    emprendedor: document.getElementById('emprendedor').value,
+    hora_inicio: document.getElementById('hora_inicio').value,
+    k_ajustado: null,
+    tipoSecador,
+    P_muestra_inicial: null,
+    Ws_muestra: null,
+  };
+
+  let msg_info = p.ocultar_espesor
+    ? `ℹ️ k=${p.k} fijo para ${p.espesor_ref}.`
+    : `ℹ️ k ajustado a L=${L_real}mm: <strong>${k}</strong> (tabla: ${p.k} @ ${p.L_ref}mm). Recalibración con pesadas afinará k para tu secador.`;
+  if (tipoSecador === 'electrico' && t_energ > t_page) {
+    msg_info += `<br>⚡ Tu equipo de ${pot}kW necesita <strong>${t_energ}h</strong> para evaporar el agua (límite energético). Cinética estimaba ${t_page}h.`;
+  }
+  if (tipoSecador === 'solar') {
+    msg_info += `<br>☀️ Secador solar: tiempo estimado basado solo en cinética de secado (${t_page}h). Depende de la radiación solar disponible.`;
+  }
+  document.getElementById('alerta-info').classList.remove('hidden');
+  document.getElementById('alerta-info').innerHTML = msg_info;
+
+  const limitLabel = (tipoSecador === 'electrico' && t_energ > t_page) ? 'Límite: equipo' : 'Límite: cinético';
+  let kpisHTML = `
+    <div class="kpi hl"><div class="kpi-l">Peso final estimado</div><div class="kpi-v">${Pf_est}</div><div class="kpi-s">kg</div></div>
+    <div class="kpi"><div class="kpi-l">Agua evaporada</div><div class="kpi-v">${Wev}</div><div class="kpi-s">kg</div></div>
+    <div class="kpi"><div class="kpi-l">Rendimiento</div><div class="kpi-v">${rend}%</div><div class="kpi-s">Pf / Pi</div></div>
+    <div class="kpi ${alertaXe ? 'warn' : 'ok'}"><div class="kpi-l">Hum. equilibrio Xe</div><div class="kpi-v">${Xe_bh}%</div><div class="kpi-s">${alertaXe ? '⚠️ Límite real' : '✓ Alcanzable'}</div></div>
+    <div class="kpi"><div class="kpi-l">Tiempo teórico</div><div class="kpi-v">${t_final}h</div><div class="kpi-s">${limitLabel}</div></div>
+    <div class="kpi hl"><div class="kpi-l">Tiempo práctico</div><div class="kpi-v">${tPractico}h</div><div class="kpi-s">${HR > 80 ? 'Ajuste HR>80%' : 'Sin ajuste HR'}</div></div>`;
+
+  if (tipoSecador === 'electrico') {
+    kpisHTML += `
+    <div class="kpi"><div class="kpi-l">Consumo eléctrico</div><div class="kpi-v">${EkWh_real}</div><div class="kpi-s">kWh reales</div></div>
+    <div class="kpi"><div class="kpi-l">Costo operativo</div><div class="kpi-v">S/. ${costo_real}</div><div class="kpi-s">Energía</div></div>`;
+  } else {
+    kpisHTML += `
+    <div class="kpi solar-kpi"><div class="kpi-l">Tipo de secado</div><div class="kpi-v">☀️ Solar</div><div class="kpi-s">Sin costo energía</div></div>`;
+  }
+
+  document.getElementById('kpis').innerHTML = kpisHTML;
+
+  pesadas = [];
+  document.getElementById('tbody-pesadas').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--txt-s)">Sin pesadas aún</td></tr>';
+  document.getElementById('tiempo-restante').classList.add('hidden');
+  document.getElementById('msg-guardado').classList.add('hidden');
+  document.getElementById('warn-pf').style.display = 'none';
+  if (myChartMuestra) { myChartMuestra.destroy(); myChartMuestra = null; }
+  document.getElementById('grafico-muestra-wrap').classList.add('hidden');
+  document.getElementById('Pf_est_out').value = Pf_est;
+
+  dibujarGrafica();
+  document.getElementById('resultados').classList.remove('hidden');
+}
+
+function dibujarGrafica(k_ajust = null) {
+  if (!estadoTanda || !curvaData.length) return;
+  const { k, n, X0_bs, Xe_bs, Ws, Hf_efectivo, tPractico } = estadoTanda;
+
+  const labels = curvaData.map(p => p.t);
+  if (labels[labels.length - 1] < tPractico) labels.push(r2(tPractico));
+
+  const H_teo = labels.map(t => {
+    const MR   = Math.exp(-k * Math.pow(Math.max(t, 0.0001), n));
+    const X_bs = Math.max(MR * (X0_bs - Xe_bs) + Xe_bs, Xe_bs);
+    return r2(X_bs / (1 + X_bs) * 100);
+  });
+  const P_teo = labels.map(t => {
+    const MR   = Math.exp(-k * Math.pow(Math.max(t, 0.0001), n));
+    const X_bs = Math.max(MR * (X0_bs - Xe_bs) + Xe_bs, Xe_bs);
+    return r2(Ws * (1 + X_bs));
+  });
+
+  let H_ajust = labels.map(() => null);
+  if (k_ajust && pesadas.length > 0 && estadoTanda.Ws_muestra) {
+    const ult      = pesadas[pesadas.length - 1];
+    const X_ult_bs = (ult.peso_g / estadoTanda.Ws_muestra) - 1;
+    labels.forEach((t, i) => {
+      if (t >= ult.hora) {
+        const dt     = t - ult.hora;
+        const MR_rel = Math.exp(-k_ajust * Math.pow(Math.max(dt, 0.001), n));
+        const X_bs   = MR_rel * (X_ult_bs - Xe_bs) + Xe_bs;
+        const X_c    = Math.max(X_bs, Xe_bs);
+        H_ajust[i]   = r2(X_c / (1 + X_c) * 100);
+      }
+    });
+  }
+
+  const puntosH = labels.map(t => {
+    const pp = pesadas.find(p => Math.abs(p.hora - t) < 0.13);
+    return pp ? pp.H_muestra : null;
+  });
+
+  const ctx = document.getElementById('chart').getContext('2d');
+  if (myChart) myChart.destroy();
+  myChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [
+      {
+        label: 'Humedad teórica (%)',
+        data: H_teo,
+        borderColor: '#C62828', borderWidth: 3,
+        pointRadius: 0, tension: .3, yAxisID: 'yH'
+      },
+      {
+        label: 'Humedad ajustada (%)',
+        data: H_ajust,
+        borderColor: '#FF7043', borderDash: [6,3], borderWidth: 2.5,
+        pointRadius: 0, tension: .3, yAxisID: 'yH', spanGaps: false
+      },
+      {
+        label: 'Pesadas (%)',
+        data: puntosH,
+        borderColor: '#3E1C00', backgroundColor: '#3E1C00',
+        borderWidth: 0, pointRadius: 7, pointStyle: 'circle',
+        showLine: false, yAxisID: 'yH'
+      },
+      {
+        label: 'Peso teórico (kg)',
+        data: P_teo,
+        borderColor: '#0C447C', borderWidth: 3,
+        pointRadius: 0, tension: .3, yAxisID: 'yP'
+      },
+      {
+        label: `Meta Hf=${Hf_efectivo}%`,
+        data: labels.map(() => Hf_efectivo),
+        borderColor: '#2E7D32', borderDash: [8,4], borderWidth: 1.5,
+        pointRadius: 0, yAxisID: 'yH'
+      },
+    ]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { font: { size: 10 }, boxWidth: 14 } },
+        tooltip: { callbacks: { title: (items) => `t = ${items[0].label}h` } }
+      },
+      scales: {
+        yH: {
+          type: 'linear', position: 'left',
+          title: { display: true, text: 'Humedad (%)', font: { size: 10 } },
+          min: 0, max: 100
+        },
+        yP: {
+          type: 'linear', position: 'right',
+          title: { display: true, text: 'Peso (kg)', font: { size: 10 } },
+          grid: { drawOnChartArea: false }
+        },
+        x: {
+          type: 'linear',
+          title: { display: true, text: 'Tiempo (h)', font: { size: 10 } },
+          min: 0, max: r2(tPractico),
+          ticks: {
+            stepSize: tPractico > 30 ? 4 : tPractico > 15 ? 2 : 1,
+            callback: (val) => val + 'h'
+          }
+        },
+      }
+    }
+  });
+}
+
+function agregarPesada() {
+  if (!estadoTanda) { alert('Primero calcula la tanda'); return; }
+  const horaVal = document.getElementById('hora_pesada').value;
+  const hora    = parseFloat(horaVal);
+  const peso_g  = parseFloat(document.getElementById('peso_pesada').value);
+  if (horaVal.trim() === '' || isNaN(hora) || hora < 0 || !peso_g) {
+    alert('Ingresa hora y peso');
+    return;
+  }
+  const { k, n, Hi, Xe_bs, Xstop_bs, Hf_efectivo, X0_bs } = estadoTanda;
+
+  if (pesadas.length === 0) {
+    estadoTanda.P_muestra_inicial = peso_g;
+    estadoTanda.Ws_muestra = r2(peso_g * (1 - Hi / 100));
+  } else {
+    const ultima = pesadas[pesadas.length - 1];
+    if (peso_g >= ultima.peso_g) {
+      alert('El peso de la muestra debe ser menor al anterior');
+      return;
+    }
+  }
+
+  const { P_muestra_inicial, Ws_muestra } = estadoTanda;
+
+  // CORRECCIÓN 1: clamp a 0 si negativo, conservar valor real si positivo
+  const H_muestra_raw = ((peso_g - Ws_muestra) / peso_g) * 100;
+  const H_muestra_t   = H_muestra_raw < 0 ? 0 : r2(H_muestra_raw);
+  const muy_seco      = H_muestra_raw < 0;
+
+  const MR_real = (peso_g - Ws_muestra) / (P_muestra_inicial - Ws_muestra);
+  const k_ajust = (hora > 0 && MR_real > 0 && MR_real < 1)
+    ? r2(-Math.log(MR_real) / Math.pow(hora, n))
+    : estadoTanda.k;
+
+  const MR_teo  = Math.exp(-k * Math.pow(Math.max(hora, 0.0001), n));
+  const X_teo   = MR_teo * (X0_bs - Xe_bs) + Xe_bs;
+  const H_teo_t = r2(X_teo / (1 + X_teo) * 100);
+  const delta   = r2(H_muestra_t - H_teo_t);
+
+  const X_ult_bs = (peso_g / Ws_muestra) - 1;
+  const Xf_bs    = Hf_efectivo / (100 - Hf_efectivo);
+  const Xtarget  = Math.max(Xf_bs, Xstop_bs);
+  let tRest = null;
+  if (X_ult_bs > Xtarget) {
+    const MR_t = (Xtarget - Xe_bs) / (X_ult_bs - Xe_bs);
+    if (MR_t > 0 && MR_t < 1) tRest = r1(Math.pow(-Math.log(MR_t) / k_ajust, 1 / n));
+  }
+
+  // CORRECCIÓN 1: incluir muy_seco en el objeto
+  pesadas.push({ hora, peso_g, H_muestra: H_muestra_t, muy_seco, k_ajust, delta_vs_teo: r2(delta) });
+  estadoTanda.k_ajustado = k_ajust;
+
+  // CORRECCIÓN 1: alerta con aviso "muy seco" si aplica
+  document.getElementById('tiempo-restante').classList.remove('hidden');
+  document.getElementById('tiempo-restante').innerHTML =
+    `📍 Muestra t=${hora}h: <strong>${peso_g}g</strong> — Humedad actual: <strong>${H_muestra_t}%${muy_seco ? ' ⚠️ muy seco' : ''}</strong> — k ajustado: <strong>${k_ajust}</strong> — Tiempo restante estimado: <strong>${tRest != null ? tRest + 'h' : '<0.25h'}</strong>`;
+
+  const tbody = document.getElementById('tbody-pesadas');
+  if (tbody.querySelector('td[colspan]')) tbody.innerHTML = '';
+  const tr = document.createElement('tr');
+  // CORRECCIÓN 1: mostrar aviso en celda de humedad si muy seco
+  const humCell = muy_seco
+    ? `${H_muestra_t}% <span style="font-size:10px;color:var(--ambar)">⚠️ muy seco</span>`
+    : `${H_muestra_t}%`;
+  tr.innerHTML = `<td>${hora}h</td><td>${peso_g}g</td><td>${humCell}</td><td>${k_ajust}</td>
+    <td><span class="badge ${delta >= 0 ? 'badge-ambar' : 'badge-verde'}">${delta >= 0 ? '+' : ''}${r2(delta)}%</span></td>`;
+  tbody.appendChild(tr);
+
+  document.getElementById('hora_pesada').value = '';
+  document.getElementById('peso_pesada').value = '';
+  dibujarGrafica(k_ajust);
+  dibujarGraficoMuestra();
+}
+
+function dibujarGraficoMuestra() {
+  if (!estadoTanda || pesadas.length < 2) return;
+  const { tPractico, Hf_efectivo } = estadoTanda;
+
+  document.getElementById('grafico-muestra-wrap').classList.remove('hidden');
+
+  const labels_m = pesadas.map(p => p.hora);
+  const H_data   = pesadas.map(p => r2(p.H_muestra));
+  const P_data   = pesadas.map(p => p.peso_g);
+
+  const ctx2 = document.getElementById('chart-muestra').getContext('2d');
+  if (myChartMuestra) myChartMuestra.destroy();
+
+  myChartMuestra = new Chart(ctx2, {
+    type: 'line',
+    data: { labels: labels_m, datasets: [
+      {
+        label: 'Humedad muestra (%)',
+        data: H_data,
+        borderColor: '#000000', borderWidth: 3,
+        pointRadius: 5, pointBackgroundColor: '#000000',
+        tension: .3, yAxisID: 'yH'
+      },
+      {
+        label: `Meta ${Hf_efectivo}%`,
+        data: labels_m.map(() => Hf_efectivo),
+        borderColor: '#C62828', borderDash: [8,4], borderWidth: 1.5,
+        pointRadius: 0, yAxisID: 'yH'
+      },
+      {
+        label: 'Peso muestra (g)',
+        data: P_data,
+        borderColor: '#0C447C', borderWidth: 3,
+        pointRadius: 5, pointBackgroundColor: '#0C447C',
+        tension: .3, yAxisID: 'yP'
+      },
+    ]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { labels: { font: { size: 10 }, boxWidth: 14 } } },
+      scales: {
+        yH: {
+          type: 'linear', position: 'left',
+          title: { display: true, text: 'Humedad (%)', font: { size: 10 } },
+          min: 0, max: 100
+        },
+        yP: {
+          type: 'linear', position: 'right',
+          title: { display: true, text: 'Peso muestra (g)', font: { size: 10 } },
+          grid: { drawOnChartArea: false }
+        },
+        x: {
+          type: 'linear',
+          title: { display: true, text: 'Tiempo (h)', font: { size: 10 } },
+          min: 0, max: r2(tPractico),
+          ticks: { callback: (val) => val + 'h' }
+        }
+      }
+    }
+  });
+}
+
+// CORRECCIÓN 2: siempre calcular Hf_real, avisos suaves, nunca bloquear
+function calcularFin() {
+  if (!estadoTanda) return;
+  const Pf_real = parseFloat(document.getElementById('Pf_real').value);
+  const warnEl  = document.getElementById('warn-pf');
+
+  if (Pf_real === undefined || Pf_real === null || isNaN(Pf_real) || Pf_real <= 0) {
+    warnEl.style.display = 'none';
+    return;
+  }
+
+  const { Ws, Hf } = estadoTanda;
+
+  const Hf_raw  = ((Pf_real - Ws) / Pf_real) * 100;
+  const Hf_real = r2(Math.max(Hf_raw, 0));
+  document.getElementById('Hf_real_out').value = Hf_real;
+
+  warnEl.style.display = 'block';
+  if (Hf_raw < 0) {
+    warnEl.style.color = 'var(--ambar)';
+    warnEl.textContent = `ℹ️ Humedad calculada muy baja (${Hf_real}%). Posible error en Hi inicial o producto muy deshidratado. Se registra igual.`;
+  } else if (Hf_real < Hf) {
+    warnEl.style.color = 'var(--ambar)';
+    warnEl.textContent = `ℹ️ Humedad real (${Hf_real}%) menor a la deseada (${Hf}%). Producto más seco — revisar tiempo de secado en próxima tanda.`;
+  } else if (Hf_real > Hf) {
+    warnEl.style.color = 'var(--ambar)';
+    warnEl.textContent = `ℹ️ Humedad real (${Hf_real}%) mayor a la deseada (${Hf}%). Producto necesitaba más tiempo de secado.`;
+  } else {
+    warnEl.style.display = 'none';
+  }
+
+  const hi = estadoTanda.hora_inicio;
+  const hf = document.getElementById('hora_fin').value;
+  if (hi && hf) {
+    const [hhi, mmi] = hi.split(':').map(Number);
+    const [hhf, mmf] = hf.split(':').map(Number);
+    let diff = (hhf * 60 + mmf) - (hhi * 60 + mmi);
+    if (diff < 0) diff += 24 * 60;
+    document.getElementById('t_real_out').value = r2(diff / 60);
+  }
+}
+
+// CORRECCIÓN 3: guardarTanda con mensaje de sincronización
+function guardarTanda() {
+  if (!estadoTanda) { alert('No hay tanda activa'); return; }
+  const now    = new Date();
+  const fecha  = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const ID_tanda = `${fecha}|${estadoTanda.emprendedor}`;
+
+  const obj = {
+    ID_tanda,
+    fecha_hora:     fecha,
+    emprendedor:    estadoTanda.emprendedor,
+    producto:       estadoTanda.prod,
+    tipo_secador:   estadoTanda.tipoSecador,
+    Pi_kg:          estadoTanda.Pi,
+    Hi_pct:         estadoTanda.Hi,
+    Hf_pct:         estadoTanda.Hf,
+    Pf_estimado_kg: estadoTanda.Pf_est,
+    Hf_real_pct:    parseFloat(document.getElementById('Hf_real_out').value) || null,
+    Pf_real_kg:     parseFloat(document.getElementById('Pf_real').value) || null,
+    t_real_h:       parseFloat(document.getElementById('t_real_out').value) || null,
+    espesor_mm:     estadoTanda.L_real,
+    T_secador:      estadoTanda.Ts,
+    HR_ambiente:    estadoTanda.HR,
+    Tamb:           estadoTanda.Tamb,
+    Xe_pct:         estadoTanda.Xe_bh,
+    t_teorico_h:    estadoTanda.t_final,
+    t_practico_h:   estadoTanda.tPractico,
+    k_original:     estadoTanda.k_tabla,
+    k_efectivo:     estadoTanda.k,
+    k_ajustado:     estadoTanda.k_ajustado || estadoTanda.k,
+    Wevap_kg:       estadoTanda.Wev,
+    EkWh:           estadoTanda.EkWh_real,
+    costo_soles:    estadoTanda.costo_real,
+    potencia_kW:    estadoTanda.pot,
+    tarifa:         estadoTanda.tar,
+    pesadas:        pesadas.map(p => ({
+                      hora_h:      p.hora,
+                      peso_g:      p.peso_g,
+                      humedad_pct: p.H_muestra,
+                      k_ajustado:  p.k_ajust
+                    })),
+    sincronizado: false,
+  };
+
+  const hist = JSON.parse(localStorage.getItem('apd_secado') || '[]');
+  hist.push(obj);
+  localStorage.setItem('apd_secado', JSON.stringify(hist));
+  document.getElementById('msg-guardado').classList.remove('hidden');
+  document.getElementById('msg-guardado').innerHTML =
+    '<div class="alert verde">✅ Tanda guardada. Sincronizando con Google Sheets...</div>';
+  renderHistorial();
+  intentarSync();
+}
+
+// v10: FormData POST — evita preflight CORS, Apps Script lee e.parameter.data
+async function postAppsScript(payload) {
+  const form = new FormData();
+  form.append('data', JSON.stringify(payload));
+  await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    mode:   'no-cors',
+    body:   form
+  });
+  // no-cors: respuesta opaca, no se puede leer status.
+  // Apps Script recibe el JSON via e.parameter.data
+}
+
+async function sincronizarRegistro(reg) {
+  await postAppsScript({
+    action:         'guardar_tanda',
+    ID_tanda:       reg.ID_tanda,
+    Fecha_hora:     reg.fecha_hora,
+    Emprendedor:    reg.emprendedor,
+    Producto:       reg.producto,
+    Pi_kg:          reg.Pi_kg,
+    Hi_pct:         reg.Hi_pct,
+    Hf_deseada:     reg.Hf_pct,
+    Xe_bh:          reg.Xe_pct,
+    k_original:     reg.k_original,
+    k_efectivo:     reg.k_efectivo,
+    k_ajustado:     reg.k_ajustado,
+    Ts:             reg.T_secador,
+    HR:             reg.HR_ambiente,
+    Tamb:           reg.Tamb,
+    espesor_mm:     reg.espesor_mm,
+    t_teorico_h:    reg.t_teorico_h,
+    t_practico_h:   reg.t_practico_h,
+    Wevap_kg:       reg.Wevap_kg,
+    Pf_estimado_kg: reg.Pf_estimado_kg,
+    EkWh:           reg.EkWh,
+    costo_soles:    reg.costo_soles,
+    potencia_kW:    reg.potencia_kW,
+    tarifa:         reg.tarifa
+  });
+
+  if (reg.pesadas && reg.pesadas.length > 0) {
+    await postAppsScript({
+      action:   'guardar_muestras',
+      ID_tanda: reg.ID_tanda,
+      muestras: reg.pesadas
+    });
+  }
+
+  if (reg.Pf_real_kg != null) {
+    await postAppsScript({
+      action:         'guardar_finalizar',
+      ID_tanda:       reg.ID_tanda,
+      Pf_estimado_kg: reg.Pf_estimado_kg,
+      Pf_real_kg:     reg.Pf_real_kg,
+      Hf_real_pct:    reg.Hf_real_pct,
+      t_real_h:       reg.t_real_h
+    });
+  }
+}
+
+// v10: intentarSync con FormData/no-cors — marca ok si no hay error de red
+function intentarSync() {
+  const hist = JSON.parse(localStorage.getItem('apd_secado') || '[]');
+  const pend = hist.filter(r => !r.sincronizado);
+  if (!pend.length) {
+    document.getElementById('sync-status').textContent = '✅ Todo sincronizado';
+    document.getElementById('sync-badge').textContent  = '● Sincronizado';
+    return;
+  }
+  if (!navigator.onLine) {
+    document.getElementById('sync-status').textContent =
+      `📦 ${pend.length} tanda(s) pendiente(s) — sin internet`;
+    return;
+  }
+  document.getElementById('sync-status').textContent = '⏳ Sincronizando...';
+  pend.forEach(async reg => {
+    try {
+      await sincronizarRegistro(reg);
+      const h   = JSON.parse(localStorage.getItem('apd_secado') || '[]');
+      const idx = h.findIndex(r => r.ID_tanda === reg.ID_tanda);
+      if (idx >= 0) {
+        h[idx].sincronizado = true;
+        localStorage.setItem('apd_secado', JSON.stringify(h));
+      }
+      document.getElementById('sync-status').textContent = '✅ Sincronizado con Google Sheets';
+      document.getElementById('sync-badge').textContent  = '● Sincronizado';
+      document.getElementById('msg-guardado').innerHTML  =
+        '<div class="alert verde">✅ Tanda guardada y sincronizada con Google Sheets.</div>';
+      renderHistorial();
+    } catch(err) {
+      // Solo llega aqui si hay falla de red real (sin internet, URL incorrecta)
+      console.error('Sync error:', err);
+      document.getElementById('sync-status').textContent =
+        '⚠️ Error de red — verifica conexion o URL del script';
+      document.getElementById('sync-badge').textContent = '● Error red';
+    }
+  });
+}
+
+function renderHistorial() {
+  const hist = JSON.parse(localStorage.getItem('apd_secado') || '[]');
+  const el   = document.getElementById('historial-body');
+  if (!hist.length) { el.innerHTML = '<p style="font-size:12px;color:var(--txt-s)">Sin registros guardados.</p>'; return; }
+  let html = `<table><thead><tr>
+    <th>Fecha</th><th>Emprendedor</th><th>Producto</th><th>Secador</th>
+    <th>Pi (kg)</th><th>Pf est. (kg)</th><th>Hf real</th>
+    <th>Tiempo real (h)</th><th>Costo S/.</th><th>Sync</th>
+  </tr></thead><tbody>`;
+  [...hist].reverse().forEach(r => {
+    const costoStr = r.tipo_secador === 'solar' ? '☀️ Solar' : `S/. ${r.costo_soles}`;
+    html += `<tr>
+      <td>${r.fecha_hora}</td>
+      <td>${r.emprendedor||'—'}</td>
+      <td>${r.producto}</td>
+      <td>${r.tipo_secador||'—'}</td>
+      <td>${r.Pi_kg}</td>
+      <td>${r.Pf_estimado_kg != null ? r.Pf_estimado_kg + ' kg' : '—'}</td>
+      <td>${r.Hf_real_pct != null ? r.Hf_real_pct + '%' : '—'}</td>
+      <td>${r.t_real_h != null ? r.t_real_h + 'h' : '—'}</td>
+      <td>${costoStr}</td>
+      <td><span class="badge ${r.sincronizado?'badge-verde':'badge-ambar'}">${r.sincronizado?'✓':'Pend.'}</span></td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  el.innerHTML = html;
+}
+
+function limpiar() {
+  tipoSecador = 'electrico';
+  setTipoSecador('electrico');
+  document.getElementById('producto').value = '';
+  ['Pi','Hi','hora_inicio','Pf_real','hora_fin','Hf_real_out','Pf_est_out','t_real_out','hora_pesada','peso_pesada','emprendedor'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('Hf').value   = '10';
+  document.getElementById('Ts').value   = '60';
+  document.getElementById('Tamb').value = '28';
+  document.getElementById('campo-espesor').classList.remove('hidden');
+  document.getElementById('resultados').classList.add('hidden');
+  document.getElementById('alerta-xe').classList.add('hidden');
+  document.getElementById('alerta-info').classList.add('hidden');
+  document.getElementById('tbody-pesadas').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--txt-s)">Sin pesadas aún</td></tr>';
+  document.getElementById('tiempo-restante').classList.add('hidden');
+  document.getElementById('msg-guardado').classList.add('hidden');
+  document.getElementById('warn-pf').style.display = 'none';
+  if (myChartMuestra) { myChartMuestra.destroy(); myChartMuestra = null; }
+  document.getElementById('grafico-muestra-wrap').classList.add('hidden');
+  pesadas = []; estadoTanda = null; curvaData = [];
+  if (myChart) { myChart.destroy(); myChart = null; }
+}
+
+renderHistorial();
+window.addEventListener('online', intentarSync);
+</script>
+</body>
+</html>
