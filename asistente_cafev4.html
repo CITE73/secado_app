@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asistente de Planta · Café · ANTONIO S.R.L.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cafe:#3B1F0A;
+  --cafe-mid:#6B3A1F;
+  --cafe-lt:#A0622A;
+  --crema:#FDF6EC;
+  --crema2:#F5ECD8;
+  --verde:#1B5E20;
+  --verde-lt:#E8F5E9;
+  --ambar:#E65100;
+  --ambar-lt:#FFF3E0;
+  --rojo:#B71C1C;
+  --rojo-lt:#FFEBEE;
+  --azul:#0D47A1;
+  --azul-lt:#E3F2FD;
+  --gris:#F0EBE3;
+  --txt:#2C1A0E;
+  --txt-s:#7A6652;
+  --borde:#DDD0C0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--gris);color:var(--txt);min-height:100vh}
+
+/* HEADER */
+header{background:var(--cafe);padding:14px 18px 10px}
+.h-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px}
+.h-empresa{font-family:'DM Serif Display',serif;color:#C8860A;font-size:16px;line-height:1.2}
+.h-sub{margin-top:3px}
+.h-sub a{color:var(--crema);font-size:11px;opacity:.8;text-decoration:none}
+.h-sub a:hover{opacity:1;text-decoration:underline}
+.h-badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:10px;padding:3px 10px;border-radius:20px;font-weight:600;white-space:nowrap}
+.h-title{text-align:center;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.15)}
+.h-title span{font-family:'DM Serif Display',serif;font-size:19px;color:#fff;letter-spacing:.05em}
+
+/* SYNC BAR */
+.sync-bar{background:var(--cafe-mid);color:var(--crema);font-size:11px;padding:6px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.btn-sync{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:6px;padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-sync:hover{background:rgba(255,255,255,.25)}
+
+/* LOTE BADGE */
+.lote-bar{background:var(--crema2);border-bottom:1px solid var(--borde);padding:7px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lote-id{font-family:'DM Serif Display',serif;color:var(--cafe);font-size:14px;font-weight:400}
+.lote-fecha{font-size:11px;color:var(--txt-s)}
+
+/* WRAP */
+.wrap{padding:14px 16px;max-width:700px;margin:0 auto}
+
+/* INPUTS GLOBALES */
+.inputs-card{background:#fff;border-radius:12px;border:1px solid var(--borde);padding:14px;margin-bottom:12px}
+.sec-label{font-size:10px;font-weight:600;color:var(--txt-s);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.inputs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:11px;color:var(--txt-s);font-weight:500}
+.field input,.field select{border:1px solid var(--borde);border-radius:7px;padding:8px 10px;font-size:14px;font-family:'DM Sans',sans-serif;background:var(--crema);color:var(--txt);font-weight:500}
+.field input:focus,.field select:focus{outline:none;border-color:var(--cafe-mid);background:#fff}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:12px;background:#fff;border-radius:10px;border:1px solid var(--borde);padding:4px}
+.tab{flex:1;border:none;border-radius:7px;padding:9px 8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;background:transparent;color:var(--txt-s);transition:all .2s;text-align:center}
+.tab.active{background:var(--cafe);color:#C8860A}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px}
+.kpi{background:#fff;border-radius:10px;padding:12px 14px;border:1px solid var(--borde)}
+.kpi-l{font-size:10px;color:var(--txt-s);margin-bottom:4px;font-weight:500;line-height:1.3}
+.kpi-v{font-size:22px;font-weight:600;color:var(--cafe);line-height:1}
+.kpi-u{font-size:10px;color:var(--txt-s);margin-top:3px}
+.kpi.hl{border-color:var(--cafe-mid);background:var(--crema)}
+.kpi.ok{border-color:var(--verde);background:var(--verde-lt)}
+.kpi.warn{border-color:var(--ambar);background:var(--ambar-lt)}
+.kpi.info{border-color:var(--azul);background:var(--azul-lt)}
+.kpi-v.verde{color:var(--verde)}
+.kpi-v.azul{color:var(--azul)}
+
+/* FLUJO DE PROCESO */
+.flujo-card{background:#fff;border-radius:12px;border:1px solid var(--borde);padding:14px;margin-bottom:12px}
+.flujo-legend{display:flex;gap:14px;margin-bottom:12px;flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--txt-s)}
+.leg-dot{width:10px;height:10px;border-radius:50%}
+.leg-dot.rojo{background:var(--rojo)}
+.leg-dot.ambar{background:var(--ambar)}
+.leg-dot.verde{background:var(--verde)}
+.flujo-head{display:grid;grid-template-columns:1fr 90px 70px 90px;gap:6px;font-size:10px;font-weight:600;color:var(--txt-s);padding:0 10px 6px;border-bottom:1px solid var(--borde);margin-bottom:6px}
+.etapa-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;margin-bottom:4px;transition:background .15s}
+.etapa-row:hover{background:var(--crema)}
+.etapa-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0}
+.etapa-num.verde{background:var(--verde)}
+.etapa-num.ambar{background:var(--ambar)}
+.etapa-num.rojo{background:var(--rojo)}
+.etapa-info{flex:1;min-width:0}
+.etapa-nombre{font-size:12px;font-weight:600;color:var(--txt)}
+.etapa-sub{font-size:10px;color:var(--txt-s)}
+.etapa-bar-wrap{width:90px;flex-shrink:0}
+.etapa-bar-bg{background:var(--gris);border-radius:4px;height:6px;overflow:hidden}
+.etapa-bar-fill{height:6px;border-radius:4px;transition:width .4s}
+.etapa-bar-pct{font-size:10px;color:var(--txt-s);margin-top:2px;text-align:right}
+.etapa-batch{width:70px;flex-shrink:0;text-align:center;font-size:12px;font-weight:600;color:var(--txt)}
+.etapa-badge{width:90px;flex-shrink:0;text-align:center}
+.badge{display:inline-block;font-size:10px;padding:3px 9px;border-radius:12px;font-weight:600}
+.badge-verde{background:var(--verde);color:#fff}
+.badge-ambar{background:var(--ambar);color:#fff}
+.badge-rojo{background:var(--rojo);color:#fff}
+.etapa-arrow{text-align:center;color:var(--txt-s);font-size:14px;padding:2px 0 2px 16px}
+
+/* INPUTS PESTAÑA 3 */
+.p3-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.motiv-card{background:var(--crema);border:1px solid var(--borde);border-radius:10px;padding:14px;margin-bottom:12px;text-align:center}
+.motiv-icon{font-size:28px;margin-bottom:6px}
+.motiv-title{font-family:'DM Serif Display',serif;font-size:15px;color:var(--cafe);margin-bottom:4px}
+.motiv-texto{font-size:12px;color:var(--txt-s);line-height:1.5}
+.motiv-destaque{font-size:18px;font-weight:700;color:var(--verde);margin:6px 0}
+
+/* BOTÓN GUARDAR */
+.btn-guardar{width:100%;background:var(--cafe);color:var(--crema);border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.03em;margin-bottom:14px;transition:background .2s}
+.btn-guardar:hover{background:var(--cafe-mid)}
+.msg-guardado{border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:12px;display:none}
+.msg-guardado.ok{background:var(--verde-lt);border:1px solid var(--verde);color:var(--verde)}
+.msg-guardado.err{background:var(--rojo-lt);border:1px solid var(--rojo);color:var(--rojo)}
+
+/* HISTORIAL */
+.hist-card{background:#fff;border-radius:12px;border:1px solid var(--borde);padding:14px}
+.hist-empty{font-size:12px;color:var(--txt-s);text-align:center;padding:20px 0}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{background:var(--cafe);color:#C8860A;padding:7px 8px;text-align:left;font-weight:600;font-size:10px}
+td{padding:7px 8px;border-bottom:1px solid #F0E8DC;color:var(--txt);vertical-align:middle}
+tr:last-child td{border:none}
+tr:nth-child(even) td{background:#FAFAF8}
+
+@media(max-width:480px){
+  .inputs-grid{grid-template-columns:1fr 1fr}
+  .flujo-head{display:none}
+  .etapa-bar-wrap,.etapa-batch{display:none}
+  .kpi-v{font-size:18px}
+  .p3-inputs{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-top">
+    <div>
+      <div class="h-empresa">AGROINDUSTRIAS E INGENIEROS ANTONIO S.R.L.</div>
+      <div class="h-sub"><a href="https://www.facebook.com/CiteHuallaga" target="_blank">CITEagroindustrial Huallaga</a></div>
+    </div>
+    <span class="h-badge" id="sync-badge">● Sin sincronizar</span>
+  </div>
+  <div class="h-title"><span>ASISTENTE DE PLANTA DIGITAL · CAFÉ</span></div>
+</header>
+
+<div class="sync-bar">
+  <span id="sync-status">📦 Datos guardados localmente</span>
+  <button class="btn-sync" onclick="intentarSync()">↑ Sincronizar</button>
+</div>
+
+<div class="lote-bar">
+  <span class="lote-id" id="lote-display">—</span>
+  <span class="lote-fecha" id="fecha-display">—</span>
+</div>
+
+<div class="wrap">
+
+  <!-- INPUTS GLOBALES -->
+  <div class="inputs-card">
+    <div class="sec-label">Inputs globales — compartidos por las 3 pestañas</div>
+    <div class="inputs-grid">
+      <div class="field">
+        <label>Café pergamino (kg)</label>
+        <input type="number" id="kg_pergamino" value="600" min="1" step="1" oninput="recalcular()">
+      </div>
+      <div class="field">
+        <label>Precio pergamino (S/·kg)</label>
+        <input type="number" id="precio_cafe" value="18" min="0" step="0.5" oninput="recalcular()">
+      </div>
+      <div class="field">
+        <label>Presentación</label>
+        <select id="presentacion" onchange="recalcular()">
+          <option value="250">250 gramos</option>
+          <option value="500">500 gramos</option>
+          <option value="1000">1000 gramos</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="setTab(0,this)">📊 Unidades procesadas</button>
+    <button class="tab" onclick="setTab(1,this)">💰 Costos de producción</button>
+    <button class="tab" onclick="setTab(2,this)">📈 Precio y rentabilidad</button>
+  </div>
+
+  <!-- ═══════════════ PESTAÑA 1 ═══════════════ -->
+  <div class="tab-pane active" id="pane0">
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi hl">
+        <div class="kpi-l">Café pergamino entrada</div>
+        <div class="kpi-v" id="k1-kg">600</div>
+        <div class="kpi-u">Kg ingresados</div>
+      </div>
+      <div class="kpi ok">
+        <div class="kpi-l">Café tostado y molido</div>
+        <div class="kpi-v verde" id="k1-tostado">432</div>
+        <div class="kpi-u">Kg producto final</div>
+      </div>
+      <div class="kpi ok">
+        <div class="kpi-l">Rendimiento global</div>
+        <div class="kpi-v verde" id="k1-rend">72.0</div>
+        <div class="kpi-u">% (trillado × tostado)</div>
+      </div>
+      <div class="kpi ok">
+        <div class="kpi-l">Unidades producidas</div>
+        <div class="kpi-v verde" id="k1-unidades">1,728</div>
+        <div class="kpi-u" id="k1-pres-label">Bolsas de 250g</div>
+      </div>
+    </div>
+
+    <!-- FLUJO DE PROCESO -->
+    <div class="flujo-card">
+      <div class="sec-label">Flujo de proceso · Rendimientos reales ANTONIO S.R.L.</div>
+      <div class="flujo-legend">
+        <div class="leg-item"><div class="leg-dot rojo"></div>Cuello de botella</div>
+        <div class="leg-item"><div class="leg-dot ambar"></div>Presión alta</div>
+        <div class="leg-item"><div class="leg-dot verde"></div>Fluye bien</div>
+      </div>
+      <div class="flujo-head">
+        <span>Etapa</span>
+        <span>Cap. x Hora</span>
+        <span>Nro. Batch</span>
+        <span>Estado</span>
+      </div>
+      <div id="flujo-body"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ PESTAÑA 2 ═══════════════ -->
+  <div class="tab-pane" id="pane1">
+    <div class="kpi-grid" id="kpi-p2">
+      <div class="kpi hl">
+        <div class="kpi-l">Precio café pergamino</div>
+        <div class="kpi-v" id="k2-precio">S/ 18.00</div>
+        <div class="kpi-u">por kilogramo</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-l">Costo producción x unidad</div>
+        <div class="kpi-v" id="k2-costo-und">S/ 9.51</div>
+        <div class="kpi-u" id="k2-und-label">bolsa 250g</div>
+      </div>
+      <div class="kpi ok">
+        <div class="kpi-l">Capital de trabajo</div>
+        <div class="kpi-v verde" id="k2-capital">S/ 16,440</div>
+        <div class="kpi-u">total del lote</div>
+      </div>
+      <div class="kpi warn">
+        <div class="kpi-l">Consumo gas</div>
+        <div class="kpi-v" style="color:var(--ambar)" id="k2-gas">S/ 237.60</div>
+        <div class="kpi-u">tostadora</div>
+      </div>
+      <div class="kpi info">
+        <div class="kpi-l">Consumo electricidad</div>
+        <div class="kpi-v azul" id="k2-elec">S/ 44.42</div>
+        <div class="kpi-u">total equipos</div>
+      </div>
+    </div>
+
+    <!-- Desglose ABC -->
+    <div class="flujo-card">
+      <div class="sec-label">Desglose ABC de costos</div>
+      <table>
+        <tr><th>Componente</th><th>Tipo</th><th>S/</th><th>%</th></tr>
+        <tr><td>Materia prima (café pergamino)</td><td>Variable</td><td id="abc-mp">—</td><td id="abc-mp-pct">—</td></tr>
+        <tr><td>Empaques + etiquetas + cajas</td><td>Variable</td><td id="abc-emp">—</td><td id="abc-emp-pct">—</td></tr>
+        <tr><td>Gas (tostadora)</td><td>Variable</td><td id="abc-gas">—</td><td id="abc-gas-pct">—</td></tr>
+        <tr><td>Electricidad (equipos)</td><td>Variable</td><td id="abc-elec">—</td><td id="abc-elec-pct">—</td></tr>
+        <tr><td>Mano de obra directa</td><td>Variable</td><td id="abc-mod">—</td><td id="abc-mod-pct">—</td></tr>
+        <tr><td>Gastos administrativos</td><td>Fijo</td><td id="abc-admin">—</td><td id="abc-admin-pct">—</td></tr>
+        <tr style="font-weight:600;background:var(--crema)"><td>TOTAL</td><td></td><td id="abc-total">—</td><td>100%</td></tr>
+      </table>
+    </div>
+
+    <!-- Horas -->
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-l">Horas / Máquina</div>
+        <div class="kpi-v" id="k2-hmaq">55.12</div>
+        <div class="kpi-u">total equipos</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-l">Horas / Hombre</div>
+        <div class="kpi-v" id="k2-hhom">44.80</div>
+        <div class="kpi-u">mano de obra</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-l">Nro. de Batches</div>
+        <div class="kpi-v" id="k2-batches">48</div>
+        <div class="kpi-u">lotes de 12.5 kg</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-l">Días de trabajo</div>
+        <div class="kpi-v" id="k2-dias">6</div>
+        <div class="kpi-u">jornadas de proceso</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ PESTAÑA 3 ═══════════════ -->
+  <div class="tab-pane" id="pane2">
+
+    <div class="inputs-card">
+      <div class="sec-label">Parámetros de precio</div>
+      <div class="p3-inputs">
+        <div class="field">
+          <label>Utilidad deseada (%)</label>
+          <input type="number" id="utilidad_pct" value="30" min="0" max="200" step="1" oninput="recalcular()">
+        </div>
+        <div class="field">
+          <label>Impuesto / Renta (%)</label>
+          <input type="number" id="impuesto_pct" value="1.5" min="0" max="30" step="0.5" oninput="recalcular()">
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi ok">
+        <div class="kpi-l">Precio de venta (x mayor)</div>
+        <div class="kpi-v verde" id="k3-pventa">S/ 12.55</div>
+        <div class="kpi-u" id="k3-pres-label">por bolsa 250g</div>
+      </div>
+      <div class="kpi ok">
+        <div class="kpi-l">Utilidad en soles</div>
+        <div class="kpi-v verde" id="k3-utilidad-sol">S/ 4,932</div>
+        <div class="kpi-u">total del lote</div>
+      </div>
+      <div class="kpi info">
+        <div class="kpi-l">Precio con IGV (18%)</div>
+        <div class="kpi-v azul" id="k3-pigv">S/ 14.81</div>
+        <div class="kpi-u">consumidor final</div>
+      </div>
+    </div>
+
+    <!-- Motivacional Jefe de Planta -->
+    <div class="motiv-card">
+      <div class="motiv-icon">☕</div>
+      <div class="motiv-title">Jefe de Planta</div>
+      <div class="motiv-texto">Sueldo mensual: <strong>S/ 1,200</strong></div>
+      <div class="motiv-destaque" id="motiv-dias">— días cubiertos</div>
+      <div class="motiv-texto" id="motiv-texto2">Este lote cubre el sueldo del jefe de planta por <strong id="motiv-dias2">—</strong> días.</div>
+      <div class="motiv-texto" style="margin-top:6px" id="motiv-pct-texto">Representa el <strong id="motiv-pct">—</strong> de tu utilidad total del lote.</div>
+    </div>
+
+    <!-- Punto de equilibrio referencial -->
+    <div class="flujo-card">
+      <div class="sec-label">Referencia de escalabilidad (Economías de escala)</div>
+      <table>
+        <tr><th>Kg pergamino</th><th>Unidades (250g)</th><th>Costo x und.</th><th>Precio venta</th></tr>
+        <tr><td>140</td><td id="esc-140-u">403</td><td id="esc-140-c">—</td><td id="esc-140-p">—</td></tr>
+        <tr><td>200</td><td id="esc-200-u">576</td><td id="esc-200-c">—</td><td id="esc-200-p">—</td></tr>
+        <tr><td>400</td><td id="esc-400-u">1,152</td><td id="esc-400-c">—</td><td id="esc-400-p">—</td></tr>
+        <tr style="background:var(--crema);font-weight:600"><td>600 (este lote)</td><td id="esc-600-u">1,728</td><td id="esc-600-c">—</td><td id="esc-600-p">—</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- BOTÓN GUARDAR -->
+  <button class="btn-guardar" onclick="guardarLote()">💾 Guardar Lote</button>
+  <div class="msg-guardado" id="msg-guardado"></div>
+
+  <!-- HISTORIAL -->
+  <div class="hist-card">
+    <div class="sec-label" style="margin-bottom:8px">📂 Historial de lotes</div>
+    <div id="hist-body"><div class="hist-empty">Sin registros guardados.</div></div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+// ══════════════════════════════════════════
+// CONFIG — pegar URL del Apps Script desplegado
+// ══════════════════════════════════════════
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPwxeR1_61xnMW0_SypaxyGOs-z5kJxAjafuErFuIEzncif6QUp7xi3QCDT57nsMOg_Q/exec';
+const STORAGE_KEY = 'apd_cafe_antonio';
+
+// ══════════════════════════════════════════
+// CONSTANTES DE PRODUCCIÓN (ANTONIO S.R.L.)
+// ══════════════════════════════════════════
+const KG_BATCH = 12.5;
+const MERMA_TRILLADO = 0.20;   // 20%
+const MERMA_TOSTADO  = 0.10;   // 10%
+const REND_GLOBAL    = (1 - MERMA_TRILLADO) * (1 - MERMA_TOSTADO); // 0.72
+
+// Capacidades por etapa (kg/hr)
+const ETAPAS = [
+  {n:'1. Recepción',        sub:'Balanza · manual',            cap:600, merma:0,    hmaq:0,     hhom:8,    colores:'verde'},
+  {n:'2. Evaluación humedad',sub:'Detector · 10-12%',          cap:600, merma:0,    hmaq:0,     hhom:8,    colores:'verde'},
+  {n:'3. Despedregado',     sub:'Cap. 200 kg/hr',              cap:200, merma:0,    hmaq:3,     hhom:3,    colores:'verde'},
+  {n:'4. Trillado',         sub:'Trilladora · malla 14/15',    cap:200, merma:0.20, hmaq:3,     hhom:3,    colores:'ambar'},
+  {n:'5. Tostado',          sub:'10 kg/batch · gas',           cap:8.75,merma:0.10, hmaq:16,    hhom:16,   colores:'rojo'},
+  {n:'6. Molienda',         sub:'Molino 100 kg/hr',            cap:100, merma:0,    hmaq:4.32,  hhom:4.32, colores:'verde'},
+  {n:'7. Envasado',         sub:'36 bolsas / 30 min',          cap:72,  merma:0,    hmaq:0,     hhom:28.8, colores:'verde'},
+  {n:'8. Sellado',          sub:'Selladora · 5 seg/und',       cap:720, merma:0,    hmaq:28.8,  hhom:28.8, colores:'verde'},
+];
+
+// Costos por batch de 12.5 kg — extraídos del Excel ANTONIO S.R.L.
+// Gas: tostadora consume 0.9 kg gas/batch × S/5.50/kg = S/4.95/batch
+// Verificado: 48 batches × 4.95 = S/237.60 ✓ | 32 batches × 4.95 = S/158.40 ✓
+const GAS_X_BATCH   = 4.95;
+// Electricidad: S/44.415 para 48 batches = S/0.9253/batch
+// Verificado: 32 batches × 0.9253 = S/29.61 ✓
+const ELEC_X_BATCH  = 44.415 / 48;
+
+const HMAQ_BASE_600 = 55.12;
+const HHOM_BASE_600 = 44.80;
+const BATCHES_BASE  = 600 / KG_BATCH; // 48
+
+// Mano de obra S/6.25/hr
+const TARIFA_MOD = 6.25;
+
+// Gastos admin — FIJOS por lote (no escalan con kg)
+// Excel: S/1,700 para 400 kg Y para 600 kg → siempre igual
+const GASTOS_ADMIN_FIJOS = 1700; // jefe S/1200 + marketing S/300 + contabilidad S/200
+
+// EPP COVID — proporcional a días de trabajo (S/4.40/día × días)
+// Excel 600kg (6 días): S/52.80 = 6 × 8.80 | 400kg (4 días): S/35.20 = 4 × 8.80
+const EPP_X_DIA    = 8.80;
+const DIAS_LOTE_BASE = 6; // días base para 600 kg
+
+// Empaques exactos del Excel (precio × unidad)
+// 250g: trilaminada S/1.15 + etiqueta S/0.50 + caja S/0.0667 + cinta S/0.00833
+const COSTO_EMPAQUE_250  = 1.15 + 0.50 + (6.6667/100) + (0.8333/100); // = 1.725
+// 500g y 1000g: estimados proporcionales
+const COSTO_EMPAQUE_500  = 1.80 + 0.50 + (6.6667/100) + (0.8333/100);
+const COSTO_EMPAQUE_1000 = 2.80 + 0.50 + (6.6667/100) + (0.8333/100);
+
+// ══════════════════════════════════════════
+// ESTADO ACTUAL
+// ══════════════════════════════════════════
+let calc = {};
+
+// ══════════════════════════════════════════
+// CÁLCULOS PRINCIPALES
+// ══════════════════════════════════════════
+function recalcular() {
+  const kg  = parseFloat(document.getElementById('kg_pergamino').value) || 0;
+  const precio = parseFloat(document.getElementById('precio_cafe').value) || 0;
+  const pres   = parseInt(document.getElementById('presentacion').value) || 250;
+  const util   = parseFloat(document.getElementById('utilidad_pct').value) || 30;
+  const imp    = parseFloat(document.getElementById('impuesto_pct').value) || 1.5;
+
+  if (kg <= 0) return;
+
+  const batches     = kg / KG_BATCH;
+  const kg_verde    = kg * (1 - MERMA_TRILLADO);
+  const kg_tostado  = kg_verde * (1 - MERMA_TOSTADO);
+  const rendimiento = (kg_tostado / kg) * 100;
+  const unidades    = Math.floor(kg_tostado * 1000 / pres);
+  const factor      = batches / BATCHES_BASE;
+
+  // Costos variables MP
+  const costo_mp   = kg * precio;
+  const empx       = pres === 250 ? COSTO_EMPAQUE_250 : pres === 500 ? COSTO_EMPAQUE_500 : COSTO_EMPAQUE_1000;
+  const costo_emp  = unidades * empx;
+
+  // Servicios
+  const costo_gas  = batches * GAS_X_BATCH;
+  const costo_elec = batches * ELEC_X_BATCH;
+
+  // Mano de obra — horas reales del Excel escaladas
+  const hh_recep   = 8    * factor;
+  const hh_humedad = 8    * factor;
+  const hh_desp    = 3    * factor;
+  const hh_trill   = 3    * factor;
+  const hh_tostado = 16   * factor;
+  const hh_molino  = 4.32 * factor;
+  const hh_envas   = 28.8 * factor;
+  const hh_sellado = 28.8 * factor;
+  const hh_total   = hh_recep + hh_humedad + hh_desp + hh_trill + hh_tostado + hh_molino + hh_envas + hh_sellado;
+  const costo_mod  = hh_total * TARIFA_MOD;
+
+  // Horas máquina proporcionales
+  const horas_maq  = +(HMAQ_BASE_600 * factor).toFixed(2);
+  const horas_hom  = +hh_total.toFixed(2);
+
+  // Admin fijo + EPP proporcional a días
+  const costo_admin = GASTOS_ADMIN_FIJOS;
+  const dias_lote   = Math.max(Math.round(factor * DIAS_LOTE_BASE), 1);
+  const costo_epp   = dias_lote * EPP_X_DIA;
+
+  const capital_trabajo = costo_mp + costo_emp + costo_gas + costo_elec + costo_mod + costo_admin + costo_epp;
+  const costo_und       = unidades > 0 ? capital_trabajo / unidades : 0;
+
+  // Precio y rentabilidad
+  const precio_venta = costo_und * (1 + util/100) * (1 + imp/100);
+  const precio_igv   = precio_venta * 1.18;
+  const utilidad_sol = precio_venta * unidades * (util/100);
+
+  calc = {
+    kg, precio, pres, util, imp,
+    batches, kg_verde, kg_tostado, rendimiento, unidades,
+    horas_maq, horas_hom, dias_lote,
+    costo_mp, costo_emp, costo_gas, costo_elec, costo_mod, costo_admin, costo_epp,
+    capital_trabajo, costo_und,
+    precio_venta, precio_igv, utilidad_sol
+  };
+
+  renderP1();
+  renderFlujo(kg);
+  renderP2(capital_trabajo, costo_und, pres);
+  renderP3(precio_venta, precio_igv, utilidad_sol, util, imp, pres, costo_und);
+}
+
+// ══════════════════════════════════════════
+// RENDER PESTAÑA 1
+// ══════════════════════════════════════════
+function renderP1() {
+  const c = calc;
+  setText('k1-kg',      fmt(c.kg));
+  setText('k1-tostado', fmt(c.kg_tostado, 1));
+  setText('k1-rend',    fmt(c.rendimiento, 1));
+  setText('k1-unidades',fmtInt(c.unidades));
+  setText('k1-pres-label', `Bolsas de ${c.pres}g`);
+}
+
+function renderFlujo(kg) {
+  const batches = kg / KG_BATCH;
+  const body = document.getElementById('flujo-body');
+  let html = '';
+  let kg_actual = kg;
+
+  ETAPAS.forEach((e, i) => {
+    // uso de capacidad: kg procesados / (cap * horas disponibles)
+    // Simplificado: cuántos batches por hora puede manejar vs cuántos necesita
+    const batch_cap   = e.cap / KG_BATCH;       // batches/hora que puede manejar
+    const horas_disp  = DIAS_LOTE_BASE * 8;      // horas disponibles
+    const batch_max   = batch_cap * horas_disp;  // batches máximos en el período
+    const uso_pct     = batch_max > 0 ? Math.min((batches / batch_max) * 100, 100) : 0;
+
+    // Estado según cuello
+    let estadoClass, estadoTxt;
+    if (e.colores === 'rojo' || uso_pct >= 80) {
+      estadoClass = 'badge-rojo'; estadoTxt = 'Cuello botella';
+    } else if (e.colores === 'ambar' || uso_pct >= 50) {
+      estadoClass = 'badge-ambar'; estadoTxt = 'Presión alta';
+    } else {
+      estadoClass = 'badge-verde'; estadoTxt = 'Fluye bien';
+    }
+
+    // Forzar tostado siempre como cuello de botella
+    if (i === 4) { estadoClass = 'badge-rojo'; estadoTxt = 'Cuello botella'; }
+    // Trillado presión alta
+    if (i === 3) { estadoClass = 'badge-ambar'; estadoTxt = 'Presión alta'; }
+
+    const nro_batch = Math.ceil(batches);
+    const barColor  = estadoClass === 'badge-rojo' ? 'var(--rojo)' : estadoClass === 'badge-ambar' ? 'var(--ambar)' : 'var(--verde)';
+    const numClass  = e.colores;
+    const pct_show  = Math.round(uso_pct);
+
+    if (e.merma > 0) {
+      kg_actual = +(kg_actual * (1 - e.merma)).toFixed(1);
+    }
+
+    html += `
+    <div class="etapa-row">
+      <div class="etapa-num ${numClass}">${i+1}</div>
+      <div class="etapa-info">
+        <div class="etapa-nombre">${e.n}</div>
+        <div class="etapa-sub">${e.sub}</div>
+      </div>
+      <div class="etapa-bar-wrap">
+        <div class="etapa-bar-bg"><div class="etapa-bar-fill" style="width:${pct_show}%;background:${barColor}"></div></div>
+        <div class="etapa-bar-pct">${pct_show}%</div>
+      </div>
+      <div class="etapa-batch">${nro_batch}</div>
+      <div class="etapa-badge"><span class="badge ${estadoClass}">${estadoTxt}</span></div>
+    </div>`;
+
+    if (i < ETAPAS.length - 1) {
+      html += `<div class="etapa-arrow">↓</div>`;
+    }
+  });
+  body.innerHTML = html;
+}
+
+// ══════════════════════════════════════════
+// RENDER PESTAÑA 2
+// ══════════════════════════════════════════
+function renderP2(capital, cund, pres) {
+  const c = calc;
+  const sf = s => `S/ ${fmt(s)}`;
+
+  setText('k2-precio',    sf(c.precio));
+  setText('k2-costo-und', sf(c.costo_und));
+  setText('k2-und-label', `bolsa ${pres}g`);
+  setText('k2-capital',   sf(c.capital_trabajo));
+  setText('k2-gas',       sf(c.costo_gas));
+  setText('k2-elec',      sf(c.costo_elec));
+  setText('k2-hmaq',      fmt(c.horas_maq));
+  setText('k2-hhom',      fmt(c.horas_hom));
+  setText('k2-batches',   fmt(c.batches, 0));
+  setText('k2-dias',      c.dias_lote || 1);
+
+  // ABC
+  const total = c.capital_trabajo;
+  const pct = v => total > 0 ? fmt((v/total)*100,1)+'%' : '—';
+
+  setText('abc-mp',       sf(c.costo_mp));
+  setText('abc-mp-pct',   pct(c.costo_mp));
+  setText('abc-emp',      sf(c.costo_emp));
+  setText('abc-emp-pct',  pct(c.costo_emp));
+  setText('abc-gas',      sf(c.costo_gas));
+  setText('abc-gas-pct',  pct(c.costo_gas));
+  setText('abc-elec',     sf(c.costo_elec));
+  setText('abc-elec-pct', pct(c.costo_elec));
+  setText('abc-mod',      sf(c.costo_mod));
+  setText('abc-mod-pct',  pct(c.costo_mod));
+  // Admin + EPP juntos en la fila admin
+  const admin_total = c.costo_admin + c.costo_epp;
+  setText('abc-admin',    sf(admin_total));
+  setText('abc-admin-pct',pct(admin_total));
+  setText('abc-total',    sf(total));
+}
+
+// ══════════════════════════════════════════
+// RENDER PESTAÑA 3
+// ══════════════════════════════════════════
+function renderP3(pventa, pigv, util_sol, util_pct, imp, pres, cund) {
+  const c = calc;
+  setText('k3-pventa',     `S/ ${fmt(pventa)}`);
+  setText('k3-pres-label', `por bolsa ${pres}g`);
+  setText('k3-utilidad-sol',`S/ ${fmt(util_sol)}`);
+  setText('k3-pigv',       `S/ ${fmt(pigv)}`);
+
+  // Motivacional jefe de planta
+  const SUELDO_JP = 50;
+  const dias_cubiertos = util_sol > 0 ? (util_sol / SUELDO_JP) * 30 : 0;
+  const dias_r = Math.round(dias_cubiertos);
+  const pct_jp = util_sol > 0 ? ((SUELDO_JP / util_sol) * 100).toFixed(1) : '—';
+
+  setText('motiv-dias',  `${dias_r} días cubiertos`);
+  setText('motiv-dias2', `${dias_r}`);
+  setText('motiv-pct',   `${pct_jp}%`);
+
+  // Escalabilidad — misma lógica que recalcular() con admin FIJO
+  [140, 200, 400, 600].forEach(kg_esc => {
+    const b_esc   = kg_esc / KG_BATCH;
+    const u_esc   = Math.floor(kg_esc * REND_GLOBAL * 1000 / pres);
+    const empx    = pres === 250 ? COSTO_EMPAQUE_250 : pres === 500 ? COSTO_EMPAQUE_500 : COSTO_EMPAQUE_1000;
+    const mp_esc  = kg_esc * c.precio;
+    const emp_esc = u_esc * empx;
+    const gas_esc = b_esc * GAS_X_BATCH;
+    const el_esc  = b_esc * ELEC_X_BATCH;
+    // MOD proporcional
+    const f_esc   = b_esc / BATCHES_BASE;
+    const mod_esc = ((8+8+3+3+16+4.32+28.8+28.8) * f_esc) * TARIFA_MOD;
+    // Admin FIJO + EPP proporcional
+    const dias_esc  = Math.max(Math.round(f_esc * DIAS_LOTE_BASE), 1);
+    const cap_esc = mp_esc + emp_esc + gas_esc + el_esc + mod_esc + GASTOS_ADMIN_FIJOS + (dias_esc * EPP_X_DIA);
+    const cund_esc= u_esc > 0 ? cap_esc / u_esc : 0;
+    const pv_esc  = cund_esc * (1 + util_pct/100) * (1 + imp/100);
+
+    const key = `esc-${kg_esc}`;
+    setText(key+'-u', fmtInt(u_esc));
+    setText(key+'-c', `S/ ${fmt(cund_esc)}`);
+    setText(key+'-p', `S/ ${fmt(pv_esc)}`);
+  });
+}
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
+function setTab(idx, btn) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.tab-pane').forEach((p,i) => {
+    p.classList.toggle('active', i === idx);
+  });
+}
+
+// ══════════════════════════════════════════
+// LOTE AUTOMÁTICO
+// ══════════════════════════════════════════
+function generarLoteId() {
+  const hoy  = new Date();
+  const dd   = String(hoy.getDate()).padStart(2,'0');
+  const mm   = String(hoy.getMonth()+1).padStart(2,'0');
+  const yyyy = hoy.getFullYear();
+  const prefijo = `Lote_${dd}${mm}${yyyy}`;
+  const hist = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  const mismodia = hist.filter(r => r.lote && r.lote.startsWith(prefijo));
+  const seq = String(mismodia.length + 1).padStart(2,'0');
+  return `${prefijo}${seq}`;
+}
+
+function formatFecha(d) {
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+
+// ══════════════════════════════════════════
+// GUARDAR LOTE
+// ══════════════════════════════════════════
+function guardarLote() {
+  recalcular();
+  const c = calc;
+  if (!c.kg || c.kg <= 0) {
+    mostrarMsg('Ingresa los datos antes de guardar.', false);
+    return;
+  }
+
+  const lote_id = generarLoteId();
+  const hoy     = new Date();
+  const fecha   = formatFecha(hoy);
+
+  const registro = {
+    lote:                lote_id,
+    fecha_proceso:       fecha,
+    cafe_pergamino:      c.kg,
+    precio_cafe:         c.precio,
+    presentacion_gramos: c.pres,
+    producto_terminado:  +c.kg_tostado.toFixed(2),
+    unidades_producidas: c.unidades,
+    costo_und_prod:      +c.costo_und.toFixed(4),
+    capital_trabajo:     +c.capital_trabajo.toFixed(2),
+    horas_maquinas:      c.horas_maq,
+    horas_hombre:        c.horas_hom,
+    gas_soles:           +c.costo_gas.toFixed(2),
+    electricidad_soles:  +c.costo_elec.toFixed(2),
+    sincronizado:        false,
+    timestamp:           hoy.toISOString()
+  };
+
+  const hist = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  hist.unshift(registro);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(hist));
+
+  document.getElementById('lote-display').textContent  = lote_id;
+  document.getElementById('fecha-display').textContent = fecha;
+
+  mostrarMsg(`✅ Lote ${lote_id} guardado localmente.`, true);
+  renderHistorial();
+  intentarSync();
+}
+
+// ══════════════════════════════════════════
+// SYNC GOOGLE SHEETS
+// ══════════════════════════════════════════
+function intentarSync() {
+  if (APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbxPwxeR1_61xnMW0_SypaxyGOs-z5kJxAjafuErFuIEzncif6QUp7xi3QCDT57nsMOg_Q/exec') return;
+  const hist = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  const pend = hist.filter(r => !r.sincronizado);
+  if (!pend.length) {
+    document.getElementById('sync-status').textContent = '✅ Todo sincronizado';
+    document.getElementById('sync-badge').textContent  = '● Sincronizado';
+    return;
+  }
+  if (!navigator.onLine) {
+    document.getElementById('sync-status').textContent = `📦 ${pend.length} lote(s) pendiente(s) — sin internet`;
+    return;
+  }
+  pend.forEach(reg => {
+    const fd = new FormData();
+    fd.append('data', JSON.stringify(reg));
+    fetch(APPS_SCRIPT_URL, {method:'POST', mode:'no-cors', body: fd})
+      .then(() => {
+        const h = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        const idx = h.findIndex(r => r.lote === reg.lote);
+        if (idx >= 0) { h[idx].sincronizado = true; localStorage.setItem(STORAGE_KEY, JSON.stringify(h)); }
+        renderHistorial();
+        const pendAun = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]').filter(r => !r.sincronizado);
+        if (!pendAun.length) {
+          document.getElementById('sync-status').textContent = '✅ Todo sincronizado';
+          document.getElementById('sync-badge').textContent  = '● Sincronizado';
+        }
+      })
+      .catch(() => {
+        document.getElementById('sync-status').textContent = `⚠️ Error de red — ${pend.length} pendiente(s)`;
+        document.getElementById('sync-badge').textContent  = '● Error red';
+      });
+  });
+}
+
+window.addEventListener('online', intentarSync);
+
+// ══════════════════════════════════════════
+// HISTORIAL
+// ══════════════════════════════════════════
+function renderHistorial() {
+  const hist = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  const body = document.getElementById('hist-body');
+  if (!hist.length) {
+    body.innerHTML = '<div class="hist-empty">Sin registros guardados.</div>';
+    return;
+  }
+  let html = `<table>
+    <tr><th>Lote</th><th>Fecha</th><th>Kg</th><th>Pres.</th><th>Unid.</th><th>Costo/und</th><th>Capital</th><th>Estado</th></tr>`;
+  hist.forEach(r => {
+    const badge = r.sincronizado
+      ? '<span class="badge badge-verde">✓ Sheets</span>'
+      : '<span class="badge badge-ambar">Pendiente</span>';
+    html += `<tr>
+      <td style="font-weight:600;font-size:10px">${r.lote}</td>
+      <td>${r.fecha_proceso}</td>
+      <td>${r.cafe_pergamino}</td>
+      <td>${r.presentacion_gramos}g</td>
+      <td>${fmtInt(r.unidades_producidas)}</td>
+      <td>S/ ${fmt(r.costo_und_prod)}</td>
+      <td>S/ ${fmt(r.capital_trabajo)}</td>
+      <td>${badge}</td>
+    </tr>`;
+  });
+  html += '</table>';
+  body.innerHTML = html;
+
+  // actualizar sync badge global
+  const pend = hist.filter(r => !r.sincronizado).length;
+  if (pend > 0) {
+    document.getElementById('sync-status').textContent = `📦 ${pend} lote(s) sin sincronizar`;
+    document.getElementById('sync-badge').textContent  = `● ${pend} pendiente(s)`;
+  } else {
+    document.getElementById('sync-status').textContent = '✅ Todo sincronizado';
+    document.getElementById('sync-badge').textContent  = '● Sincronizado';
+  }
+}
+
+// ══════════════════════════════════════════
+// UTILIDADES
+// ══════════════════════════════════════════
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+function fmt(n, dec=2) {
+  if (n === undefined || n === null || isNaN(n)) return '—';
+  return Number(n).toLocaleString('es-PE', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+}
+function fmtInt(n) {
+  if (n === undefined || n === null || isNaN(n)) return '—';
+  return Number(n).toLocaleString('es-PE');
+}
+function mostrarMsg(txt, ok) {
+  const el = document.getElementById('msg-guardado');
+  el.textContent = txt;
+  el.className = 'msg-guardado ' + (ok ? 'ok' : 'err');
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+(function init() {
+  const hoy = new Date();
+  document.getElementById('lote-display').textContent  = generarLoteId();
+  document.getElementById('fecha-display').textContent = formatFecha(hoy);
+  recalcular();
+  renderHistorial();
+})();
+</script>
+</body>
+</html>
