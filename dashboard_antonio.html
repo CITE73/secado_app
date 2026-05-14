@@ -433,6 +433,7 @@ function renderChartKgLote(datos) {
     type: 'bar',
     data: {
       labels,
+      const values = datos.map(r => r.kg);
       datasets: [{
         label: 'Kg pergamino',
         data: values,
