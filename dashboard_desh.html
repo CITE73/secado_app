@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Deshidratado — Aucaya Fruit</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+:root{
+  --cafe:#3E1C00;--cafe-mid:#6F3A12;--crema:#F5ECD7;--crema-lt:#FBF6EE;
+  --gris:#F4F1EC;--txt:#1A0A00;--txt-s:#6B4C2A;
+  --verde:#2E7D32;--verde-lt:#E8F5E9;
+  --ambar:#E65100;--ambar-lt:#FFF3E0;
+  --rojo:#C62828;--rojo-lt:#FFEBEE;
+  --azul:#0C447C;--azul-lt:#E6F1FB;
+  --oro:#C8860A;--oro-lt:#FFFDE7;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--gris);color:var(--txt);min-height:100vh}
+
+/* HEADER */
+header{background:var(--cafe);padding:12px 20px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.h-top{display:flex;justify-content:space-between;align-items:flex-start}
+.h-marca .h-empresa{font-family:'DM Serif Display',serif;color:var(--oro);font-size:16px}
+.h-marca .h-sub{color:var(--crema);font-size:11px;margin-top:2px;opacity:.8}
+.h-links{display:flex;gap:10px;align-items:center}
+.h-link{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+  color:var(--crema);font-size:11px;font-weight:600;padding:5px 12px;
+  border-radius:6px;text-decoration:none;font-family:'DM Sans',sans-serif;
+  transition:background .2s}
+.h-link:hover{background:rgba(255,255,255,.22)}
+.h-link.activo{background:var(--oro);border-color:var(--oro);color:#fff}
+.h-title{text-align:center;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.15)}
+.h-title span{font-family:'DM Serif Display',serif;font-size:19px;color:#fff;letter-spacing:.06em}
+
+/* FILTROS */
+.filtros-bar{background:#fff;border-bottom:1px solid #E8DDD0;padding:12px 20px;
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.filtro-label{font-size:11px;font-weight:600;color:var(--txt-s);text-transform:uppercase;letter-spacing:.05em}
+select.filtro{border:1px solid #D4C5B0;border-radius:6px;padding:7px 10px;
+  font-size:13px;font-family:'DM Sans',sans-serif;background:var(--crema-lt);
+  color:var(--txt);cursor:pointer;min-width:140px}
+select.filtro:focus{outline:none;border-color:var(--cafe-mid)}
+.btn-filtro{background:var(--cafe);color:var(--crema);border:none;border-radius:6px;
+  padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-filtro:hover{background:var(--cafe-mid)}
+.estado-datos{font-size:11px;color:var(--txt-s);margin-left:auto}
+
+/* WRAP */
+.wrap{padding:18px 20px;max-width:1100px;margin:0 auto}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:#fff;border-radius:12px;padding:14px 16px;border:1px solid #E8DDD0;position:relative}
+.kpi-icon{font-size:22px;margin-bottom:6px}
+.kpi-l{font-size:10px;color:var(--txt-s);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.kpi-v{font-size:24px;font-weight:700;color:var(--cafe);line-height:1}
+.kpi-s{font-size:11px;color:var(--txt-s);margin-top:4px}
+.kpi.oro{border-color:var(--oro);background:var(--oro-lt)}
+.kpi.verde{border-color:var(--verde);background:var(--verde-lt)}
+.kpi.azul{border-color:var(--azul);background:var(--azul-lt)}
+.kpi.ambar{border-color:var(--ambar);background:var(--ambar-lt)}
+.kpi.cafe{border-color:var(--cafe-mid);background:var(--crema)}
+
+/* SECCION TITULO */
+.sec-titulo{font-size:10px;font-weight:700;color:var(--txt-s);text-transform:uppercase;
+  letter-spacing:.07em;margin:20px 0 10px;padding-bottom:6px;border-bottom:2px solid #E8DDD0}
+
+/* GRAFICOS */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.chart-card{background:#fff;border-radius:12px;border:1px solid #E8DDD0;padding:16px}
+.chart-card.full{grid-column:1/-1}
+.chart-title{font-size:11px;font-weight:700;color:var(--cafe);text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:12px}
+.chart-wrap{position:relative;height:240px}
+.chart-wrap.sm{height:200px}
+
+/* TABLA */
+.tabla-card{background:#fff;border-radius:12px;border:1px solid #E8DDD0;padding:16px;margin-bottom:20px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+thead tr{background:var(--cafe)}
+th{color:var(--oro);padding:8px 10px;text-align:left;font-weight:600;font-size:11px;white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid #F0E8DC;color:var(--txt);white-space:nowrap}
+tr:last-child td{border:none}
+tr:nth-child(even) td{background:#FAFAF8}
+tr.mejor-lote td{background:var(--verde-lt)!important;font-weight:600}
+tr.mejor-lote td:first-child::before{content:'🏆 ';font-size:11px}
+
+/* BADGES */
+.badge{display:inline-block;font-size:10px;padding:3px 8px;border-radius:10px;font-weight:700}
+.badge-verde{background:var(--verde);color:#fff}
+.badge-oro{background:var(--oro);color:#fff}
+.badge-rojo{background:var(--rojo);color:#fff}
+.badge-azul{background:var(--azul);color:#fff}
+
+/* ESTADO VACIO */
+.empty{text-align:center;padding:60px 20px;color:var(--txt-s)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.empty-txt{font-size:14px;font-weight:500}
+.empty-sub{font-size:12px;margin-top:6px}
+
+/* LOADING */
+.loading{text-align:center;padding:40px;color:var(--txt-s);font-size:13px}
+
+@media(max-width:640px){
+  .charts-grid{grid-template-columns:1fr}
+  .chart-card.full{grid-column:1}
+  .kpi-v{font-size:20px}
+  .filtros-bar{gap:8px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-top">
+    <div class="h-marca">
+      <div class="h-empresa">Aucaya Fruit SAC</div>
+      <div class="h-sub">Proceso de Secado · Aucayacu, Leoncio Prado</div>
+    </div>
+    <div class="h-links">
+      <a class="h-link" href="aucaya_secado_v4.html">⬅ Asistente de Planta</a>
+      <a class="h-link activo" href="#">📊 Dashboard</a>
+    </div>
+  </div>
+  <div class="h-title"><span>DASHBOARD DE EFICIENCIA — DESHIDRATADO</span></div>
+</header>
+
+<div class="filtros-bar">
+  <span class="filtro-label">Filtrar por:</span>
+  <select class="filtro" id="f-producto">
+    <option value="">Todos los productos</option>
+  </select>
+  <select class="filtro" id="f-mes">
+    <option value="">Todos los meses</option>
+  </select>
+  <button class="btn-filtro" onclick="aplicarFiltros()">Aplicar</button>
+  <button class="btn-filtro" style="background:var(--txt-s)" onclick="limpiarFiltros()">Limpiar</button>
+  <span class="estado-datos" id="estado-datos">Cargando datos...</span>
+</div>
+
+<div class="wrap">
+  <div id="contenido">
+    <div class="loading">⏳ Conectando con Google Sheets...</div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  CONFIGURACIÓN
+// ══════════════════════════════════════════════════
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyE-4ZvRC5q59rWJz2x-r8pdUYcSAfrqhJB2rHhUrjqrk7UgoO7l-fmgUUFevRbmRfq/exec";
+
+// Paleta coherente con la app
+const COLORES = {
+  cafe:    '#3E1C00', cafe_mid:'#6F3A12', cafe_lt:'#A0612A',
+  oro:     '#C8860A', crema:   '#F5ECD7',
+  verde:   '#2E7D32', verde_lt:'#81C784',
+  ambar:   '#E65100', ambar_lt:'#FFAB76',
+  azul:    '#0C447C', azul_lt: '#64B5F6',
+  rojo:    '#C62828',
+};
+
+const PROD_COLORES = {
+  'Aguaymanto':'#C8860A','Plátano':'#2E7D32','Piña':'#E65100',
+  'Coco':'#0C447C','Mango':'#7B1FA2','Yuca':'#00695C',
+  'Pituca':'#AD1457','Manzana':'#558B2F',
+};
+
+// ══════════════════════════════════════════════════
+//  ESTADO
+// ══════════════════════════════════════════════════
+let todosLosRegistros = [];
+let registrosFiltrados = [];
+let charts = {};
+
+// ══════════════════════════════════════════════════
+//  CARGA DE DATOS
+// ══════════════════════════════════════════════════
+async function cargarDatos() {
+  try {
+    // 1. Cargar filtros disponibles
+    const rFiltros = await fetch(`${APPS_SCRIPT_URL}?action=get_productos`);
+    const dFiltros = await rFiltros.json();
+    if (dFiltros.result === 'ok') {
+      poblarFiltros(dFiltros.productos, dFiltros.meses);
+    }
+
+    // 2. Cargar todos los registros
+    const rDatos = await fetch(`${APPS_SCRIPT_URL}?action=get_dashboard`);
+    const dDatos = await rDatos.json();
+
+    if (dDatos.result === 'ok') {
+      todosLosRegistros = (dDatos.registros || []).map(parsearRegistro);
+      registrosFiltrados = [...todosLosRegistros];
+      document.getElementById('estado-datos').textContent =
+        `${todosLosRegistros.length} lote(s) cargados`;
+      renderDashboard();
+    } else {
+      mostrarError('Error al cargar datos: ' + dDatos.mensaje);
+    }
+  } catch(err) {
+    // Si falla la red, cargar datos demo para visualizar
+    console.warn('Sin conexión — cargando datos demo:', err);
+    todosLosRegistros = datosDemo();
+    registrosFiltrados = [...todosLosRegistros];
+    poblarFiltrosDesdeDatos();
+    document.getElementById('estado-datos').textContent =
+      `⚠️ Datos demo (sin conexión) — ${todosLosRegistros.length} lotes`;
+    renderDashboard();
+  }
+}
+
+function parsearRegistro(r) {
+  return {
+    ...r,
+    Geo_mm:           parseFloat(r.Geo_mm)            || 0,
+    Pi_kg:            parseFloat(r.Pi_kg)             || 0,
+    Pf_real_kg:       parseFloat(r.Pf_real_kg)        || 0,
+    Hf_real_pct:      parseFloat(r.Hf_real_pct)       || 0,
+    Ts_C:             parseFloat(r.Ts_C)              || 0,
+    HR_pct:           parseFloat(r.HR_pct)            || 0,
+    Tamb_C:           parseFloat(r.Tamb_C)            || 0,
+    t_real_h:         parseFloat(r.t_real_h)          || 0,
+    Costo_total_real: parseFloat(r.Costo_total_real)  || 0,
+    Rend_real_pct:    parseFloat(r.Rend_real_pct)     || 0,
+    Score_eficiencia: parseFloat(r.Score_eficiencia)  || 0,
+  };
+}
+
+function poblarFiltros(productos, meses) {
+  const selP = document.getElementById('f-producto');
+  productos.forEach(p => {
+    const o = document.createElement('option'); o.value=p; o.textContent=p; selP.appendChild(o);
+  });
+  const selM = document.getElementById('f-mes');
+  meses.forEach(m => {
+    const o = document.createElement('option'); o.value=m; o.textContent=m; selM.appendChild(o);
+  });
+}
+
+function poblarFiltrosDesdeDatos() {
+  const productos = [...new Set(todosLosRegistros.map(r=>r.Producto).filter(Boolean))].sort();
+  const meses     = [...new Set(todosLosRegistros.map(r=>r.Mes_anio).filter(Boolean))];
+  poblarFiltros(productos, meses);
+}
+
+function aplicarFiltros() {
+  const prod = document.getElementById('f-producto').value;
+  const mes  = document.getElementById('f-mes').value;
+  registrosFiltrados = todosLosRegistros.filter(r => {
+    if (prod && r.Producto !== prod) return false;
+    if (mes  && r.Mes_anio !== mes)  return false;
+    return true;
+  });
+  document.getElementById('estado-datos').textContent =
+    `${registrosFiltrados.length} lote(s) mostrados`;
+  renderDashboard();
+}
+
+function limpiarFiltros() {
+  document.getElementById('f-producto').value = '';
+  document.getElementById('f-mes').value = '';
+  registrosFiltrados = [...todosLosRegistros];
+  document.getElementById('estado-datos').textContent =
+    `${registrosFiltrados.length} lote(s) cargados`;
+  renderDashboard();
+}
+
+// ══════════════════════════════════════════════════
+//  RENDER PRINCIPAL
+// ══════════════════════════════════════════════════
+function renderDashboard() {
+  // Destruir gráficos previos
+  Object.values(charts).forEach(c => { if(c) c.destroy(); });
+  charts = {};
+
+  if (!registrosFiltrados.length) {
+    document.getElementById('contenido').innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">📭</div>
+        <div class="empty-txt">Sin datos para los filtros seleccionados</div>
+        <div class="empty-sub">Registra lotes en el Asistente de Planta y sincroniza.</div>
+      </div>`;
+    return;
+  }
+
+  const regs = registrosFiltrados;
+
+  // ── Calcular KPIs ──
+  const mejorLote  = [...regs].sort((a,b)=>b.Rend_real_pct-a.Rend_real_pct)[0];
+  const rendProm   = r1(regs.reduce((s,r)=>s+r.Rend_real_pct,0)/regs.length);
+  const costKgProm = r2(regs.filter(r=>r.Pf_real_kg>0)
+    .reduce((s,r)=>s+(r.Costo_total_real/r.Pf_real_kg),0) /
+    Math.max(regs.filter(r=>r.Pf_real_kg>0).length,1));
+  // Geo óptimo = el que aparece en el lote de mayor rendimiento
+  const geoOptimo  = mejorLote.Geo_mm ? mejorLote.Geo_mm + 'mm' : '—';
+  const tsOptima   = mejorLote.Ts_C   ? mejorLote.Ts_C + '°C'   : '—';
+
+  document.getElementById('contenido').innerHTML = `
+    <!-- KPIs -->
+    <div class="sec-titulo">📌 Indicadores clave del período</div>
+    <div class="kpi-grid">
+      <div class="kpi oro">
+        <div class="kpi-icon">🏆</div>
+        <div class="kpi-l">Mejor lote</div>
+        <div class="kpi-v" style="font-size:16px">${mejorLote.Lote_ID||'—'}</div>
+        <div class="kpi-s">${mejorLote.Rend_real_pct}% rendimiento</div>
+      </div>
+      <div class="kpi verde">
+        <div class="kpi-icon">📈</div>
+        <div class="kpi-l">Rendimiento promedio</div>
+        <div class="kpi-v">${rendProm}%</div>
+        <div class="kpi-s">Pf real / Pi × 100</div>
+      </div>
+      <div class="kpi cafe">
+        <div class="kpi-icon">📐</div>
+        <div class="kpi-l">Geo óptimo (mejor lote)</div>
+        <div class="kpi-v">${geoOptimo}</div>
+        <div class="kpi-s">Diámetro / espesor</div>
+      </div>
+      <div class="kpi ambar">
+        <div class="kpi-icon">🌡️</div>
+        <div class="kpi-l">Ts óptima (mejor lote)</div>
+        <div class="kpi-v">${tsOptima}</div>
+        <div class="kpi-s">Temperatura secador</div>
+      </div>
+      <div class="kpi azul">
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-l">Costo por kg promedio</div>
+        <div class="kpi-v">S/. ${costKgProm}</div>
+        <div class="kpi-s">Costo total / Pf real</div>
+      </div>
+    </div>
+
+    <!-- GRÁFICOS -->
+    <div class="sec-titulo">📊 Análisis por lote</div>
+    <div class="charts-grid">
+      <div class="chart-card full">
+        <div class="chart-title">Rendimiento % por lote — con curva de tendencia</div>
+        <div class="chart-wrap"><canvas id="chart-rend"></canvas></div>
+      </div>
+      <div class="chart-card full">
+        <div class="chart-title">Costo por kg producido (S/.) por lote — con curva de tendencia</div>
+        <div class="chart-wrap"><canvas id="chart-costo"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Diámetro / Espesor (mm) vs Rendimiento %</div>
+        <div class="chart-wrap sm"><canvas id="chart-geo"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Temperatura secador Ts (°C) vs Rendimiento %</div>
+        <div class="chart-wrap sm"><canvas id="chart-ts"></canvas></div>
+      </div>
+    </div>
+
+    <!-- TABLA -->
+    <div class="sec-titulo">📋 Detalle de lotes</div>
+    <div class="tabla-card">
+      <table id="tabla-lotes"></table>
+    </div>`;
+
+  // Render gráficos y tabla
+  setTimeout(() => {
+    chartRendimiento(regs);
+    chartCostoPorKg(regs);
+    chartGeoVsRend(regs);
+    chartTsVsRend(regs);
+    renderTabla(regs, mejorLote.Lote_ID);
+  }, 50);
+}
+
+// ══════════════════════════════════════════════════
+//  GRÁFICO 1 — Rendimiento % por lote
+// ══════════════════════════════════════════════════
+function chartRendimiento(regs) {
+  const labels = regs.map(r => r.Lote_ID || r.ID_tanda);
+  const rends  = regs.map(r => r.Rend_real_pct);
+  const trend  = calcTendencia(rends);
+
+  const colores = regs.map(r =>
+    r.Rend_real_pct === Math.max(...rends) ? COLORES.verde : COLORES.ambar
+  );
+
+  charts.rend = new Chart(document.getElementById('chart-rend'), {
+    type: 'bar',
+    data: { labels, datasets: [
+      {
+        label: 'Rendimiento (%)',
+        data: rends,
+        backgroundColor: colores,
+        borderColor: colores,
+        borderWidth: 0,
+        borderRadius: 4,
+      },
+      {
+        label: 'Tendencia',
+        data: trend,
+        type: 'line',
+        borderColor: COLORES.rojo,
+        borderWidth: 2.5,
+        pointRadius: 5,
+        pointBackgroundColor: COLORES.rojo,
+        fill: false,
+        tension: 0.3,
+        yAxisID: 'y',
+      }
+    ]},
+    options: opcionesBarras('Rendimiento (%)', rends, '%', COLORES.verde),
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  GRÁFICO 2 — Costo por kg por lote
+// ══════════════════════════════════════════════════
+function chartCostoPorKg(regs) {
+  const labels   = regs.map(r => r.Lote_ID || r.ID_tanda);
+  const costoKgs = regs.map(r =>
+    r.Pf_real_kg > 0 ? r2(r.Costo_total_real / r.Pf_real_kg) : 0
+  );
+  const trend = calcTendencia(costoKgs);
+  const minC  = Math.min(...costoKgs);
+
+  const colores = costoKgs.map(v => v === minC ? COLORES.verde : COLORES.ambar);
+
+  charts.costo = new Chart(document.getElementById('chart-costo'), {
+    type: 'bar',
+    data: { labels, datasets: [
+      {
+        label: 'Costo/kg (S/.)',
+        data: costoKgs,
+        backgroundColor: colores,
+        borderColor: colores,
+        borderWidth: 0,
+        borderRadius: 4,
+      },
+      {
+        label: 'Tendencia',
+        data: trend,
+        type: 'line',
+        borderColor: COLORES.rojo,
+        borderWidth: 2.5,
+        pointRadius: 5,
+        pointBackgroundColor: COLORES.rojo,
+        fill: false,
+        tension: 0.3,
+      }
+    ]},
+    options: opcionesBarras('Costo por kg (S/.)', costoKgs, 'S/.', COLORES.ambar, true),
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  GRÁFICO 3 — Geo_mm vs Rendimiento
+// ══════════════════════════════════════════════════
+function chartGeoVsRend(regs) {
+  const validos = regs.filter(r => r.Geo_mm > 0 && r.Rend_real_pct > 0);
+  if (!validos.length) return;
+
+  // Agrupar por producto para colorear
+  const productos = [...new Set(validos.map(r=>r.Producto))];
+  const datasets  = productos.map(prod => {
+    const puntos = validos.filter(r=>r.Producto===prod);
+    return {
+      label: prod,
+      data: puntos.map(r=>({x:r.Geo_mm, y:r.Rend_real_pct, lote:r.Lote_ID})),
+      backgroundColor: PROD_COLORES[prod] || COLORES.cafe,
+      pointRadius: 8,
+      pointHoverRadius: 11,
+    };
+  });
+
+  charts.geo = new Chart(document.getElementById('chart-geo'), {
+    type: 'scatter',
+    data: { datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels:{font:{size:10},boxWidth:12} },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label} — ${ctx.raw.lote||''}: ${ctx.raw.x}mm → ${ctx.raw.y}%`
+          }
+        }
+      },
+      scales: {
+        x: { title:{display:true,text:'Diámetro / Espesor (mm)',font:{size:10}}, min:0 },
+        y: { title:{display:true,text:'Rendimiento (%)',font:{size:10}}, min:0, max:100 },
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  GRÁFICO 4 — Ts vs Rendimiento
+// ══════════════════════════════════════════════════
+function chartTsVsRend(regs) {
+  const validos  = regs.filter(r => r.Ts_C > 0 && r.Rend_real_pct > 0);
+  if (!validos.length) return;
+
+  const productos = [...new Set(validos.map(r=>r.Producto))];
+  const datasets  = productos.map(prod => {
+    const puntos = validos.filter(r=>r.Producto===prod);
+    return {
+      label: prod,
+      data: puntos.map(r=>({x:r.Ts_C, y:r.Rend_real_pct, lote:r.Lote_ID, hr:r.HR_pct})),
+      backgroundColor: PROD_COLORES[prod] || COLORES.cafe,
+      pointRadius: 8,
+      pointHoverRadius: 11,
+    };
+  });
+
+  charts.ts = new Chart(document.getElementById('chart-ts'), {
+    type: 'scatter',
+    data: { datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels:{font:{size:10},boxWidth:12} },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label} — ${ctx.raw.lote||''}: Ts=${ctx.raw.x}°C, HR=${ctx.raw.hr}% → ${ctx.raw.y}%`
+          }
+        }
+      },
+      scales: {
+        x: { title:{display:true,text:'Temperatura secador Ts (°C)',font:{size:10}} },
+        y: { title:{display:true,text:'Rendimiento (%)',font:{size:10}}, min:0, max:100 },
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  TABLA DETALLE
+// ══════════════════════════════════════════════════
+function renderTabla(regs, mejorLoteID) {
+  const sorted = [...regs].sort((a,b)=>b.Rend_real_pct-a.Rend_real_pct);
+  let html = `<thead><tr>
+    <th>Lote</th><th>Fecha</th><th>Producto</th><th>Operario</th>
+    <th>Pi (kg)</th><th>Pf real (kg)</th><th>Geo (mm)</th>
+    <th>Ts (°C)</th><th>HR (%)</th><th>Tamb (°C)</th>
+    <th>T. real (h)</th><th>Rend. %</th><th>Costo/kg</th><th>Score</th>
+  </tr></thead><tbody>`;
+
+  sorted.forEach(r => {
+    const costKg = r.Pf_real_kg > 0 ? r2(r.Costo_total_real/r.Pf_real_kg) : '—';
+    const esMejor = r.Lote_ID === mejorLoteID;
+    const badgeColor = r.Rend_real_pct >= 20 ? 'badge-verde'
+      : r.Rend_real_pct >= 12 ? 'badge-oro' : 'badge-rojo';
+    html += `<tr class="${esMejor?'mejor-lote':''}">
+      <td><strong>${r.Lote_ID||'—'}</strong></td>
+      <td>${r.Fecha_hora||'—'}</td>
+      <td>${r.Producto||'—'}</td>
+      <td>${r.Operario||'—'}</td>
+      <td>${r.Pi_kg||'—'}</td>
+      <td>${r.Pf_real_kg||'—'}</td>
+      <td>${r.Geo_mm||'—'}</td>
+      <td>${r.Ts_C||'—'}</td>
+      <td>${r.HR_pct||'—'}</td>
+      <td>${r.Tamb_C||'—'}</td>
+      <td>${r.t_real_h||'—'}</td>
+      <td><span class="badge ${badgeColor}">${r.Rend_real_pct}%</span></td>
+      <td>${costKg !== '—' ? 'S/. '+costKg : '—'}</td>
+      <td>${r.Score_eficiencia||'—'}</td>
+    </tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('tabla-lotes').innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════
+//  OPCIONES COMUNES BARRAS
+// ══════════════════════════════════════════════════
+function opcionesBarras(label, valores, prefijo, color, invertir=false) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { labels:{font:{size:10},boxWidth:14} },
+      tooltip: {
+        callbacks: {
+          label: ctx => `${ctx.dataset.label}: ${invertir?'S/. ':''}${ctx.raw}${!invertir?prefijo:''}`
+        }
+      },
+      // Etiquetas directas sobre las barras
+      datalabels: false,
+    },
+    scales: {
+      x: { ticks:{font:{size:10}, maxRotation:30} },
+      y: {
+        title:{display:true, text:label, font:{size:10}},
+        min: 0,
+        suggestedMax: Math.max(...valores) * 1.18,
+      }
+    },
+    animation: { duration: 600 },
+  };
+}
+
+// Plugin de etiquetas directas en barras (nativo)
+Chart.register({
+  id: 'etiquetasBarras',
+  afterDatasetsDraw(chart) {
+    const { ctx } = chart;
+    chart.data.datasets.forEach((dataset, i) => {
+      if (dataset.type === 'line') return;
+      const meta = chart.getDatasetMeta(i);
+      meta.data.forEach((bar, idx) => {
+        const val = dataset.data[idx];
+        if (val == null || val === 0) return;
+        ctx.save();
+        ctx.fillStyle = '#3E1C00';
+        ctx.font = 'bold 10px DM Sans, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(
+          chart.data.labels[idx].toString().includes('AF') ? `${val}` : val,
+          bar.x, bar.y - 3
+        );
+        ctx.restore();
+      });
+    });
+  }
+});
+
+// ══════════════════════════════════════════════════
+//  TENDENCIA LINEAL (mínimos cuadrados)
+// ══════════════════════════════════════════════════
+function calcTendencia(valores) {
+  const n  = valores.length;
+  if (n < 2) return valores;
+  const xs = valores.map((_,i)=>i);
+  const mx = xs.reduce((a,b)=>a+b,0)/n;
+  const my = valores.reduce((a,b)=>a+b,0)/n;
+  const num = xs.reduce((s,x,i)=>s+(x-mx)*(valores[i]-my),0);
+  const den = xs.reduce((s,x)=>s+(x-mx)**2,0);
+  const m   = den ? num/den : 0;
+  const b   = my - m*mx;
+  return xs.map(x => r2(m*x+b));
+}
+
+// ══════════════════════════════════════════════════
+//  DATOS DEMO (sin conexión)
+// ══════════════════════════════════════════════════
+function datosDemo() {
+  return [
+    {Lote_ID:'AF-2026-JUN-001',ID_tanda:'21/04/2026|Juan',Fecha_hora:'21/04/2026 08:00',Operario:'Juan Torres',Producto:'Aguaymanto',Geo_mm:15,Pi_kg:400,Pf_real_kg:60,Hf_real_pct:14,Ts_C:60,HR_pct:65,Tamb_C:28,t_real_h:48,Costo_total_real:338,Rend_real_pct:15,Score_eficiencia:0.0009,Mes_anio:'JUN-2026'},
+    {Lote_ID:'AF-2026-JUN-002',ID_tanda:'24/04/2026|Juan',Fecha_hora:'24/04/2026 08:00',Operario:'Juan Torres',Producto:'Aguaymanto',Geo_mm:12,Pi_kg:400,Pf_real_kg:64,Hf_real_pct:14,Ts_C:62,HR_pct:63,Tamb_C:27,t_real_h:38,Costo_total_real:298,Rend_real_pct:16,Score_eficiencia:0.0014,Mes_anio:'JUN-2026'},
+    {Lote_ID:'AF-2026-JUN-003',ID_tanda:'28/04/2026|Fernando',Fecha_hora:'28/04/2026 08:00',Operario:'Fernando Torres',Producto:'Plátano',Geo_mm:10,Pi_kg:320,Pf_real_kg:80,Hf_real_pct:13,Ts_C:60,HR_pct:68,Tamb_C:29,t_real_h:24,Costo_total_real:179,Rend_real_pct:25,Score_eficiencia:0.0058,Mes_anio:'JUN-2026'},
+    {Lote_ID:'AF-2026-JUN-004',ID_tanda:'02/05/2026|Alejandra',Fecha_hora:'02/05/2026 08:00',Operario:'Alejandra Guere',Producto:'Aguaymanto',Geo_mm:10,Pi_kg:400,Pf_real_kg:68,Hf_real_pct:14,Ts_C:63,HR_pct:60,Tamb_C:26,t_real_h:32,Costo_total_real:278,Rend_real_pct:17,Score_eficiencia:0.0019,Mes_anio:'JUN-2026'},
+    {Lote_ID:'AF-2026-JUN-005',ID_tanda:'05/05/2026|Juan',Fecha_hora:'05/05/2026 08:00',Operario:'Juan Torres',Producto:'Piña',Geo_mm:10,Pi_kg:320,Pf_real_kg:27,Hf_real_pct:15,Ts_C:60,HR_pct:70,Tamb_C:28,t_real_h:42,Costo_total_real:283,Rend_real_pct:8.4,Score_eficiencia:0.0003,Mes_anio:'JUN-2026'},
+    {Lote_ID:'AF-2026-JUN-006',ID_tanda:'09/05/2026|Fernando',Fecha_hora:'09/05/2026 08:00',Operario:'Fernando Torres',Producto:'Plátano',Geo_mm:8,Pi_kg:320,Pf_real_kg:85,Hf_real_pct:13,Ts_C:62,HR_pct:65,Tamb_C:27,t_real_h:20,Costo_total_real:169,Rend_real_pct:26.6,Score_eficiencia:0.0079,Mes_anio:'JUN-2026'},
+  ].map(parsearRegistro);
+}
+
+// ══════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════
+function r2(n){return Math.round(n*100)/100;}
+function r1(n){return Math.round(n*10)/10;}
+function mostrarError(msg){
+  document.getElementById('contenido').innerHTML=`
+    <div class="empty"><div class="empty-icon">⚠️</div>
+    <div class="empty-txt">${msg}</div>
+    <div class="empty-sub">Verifica la URL del Apps Script en el Asistente de Planta.</div></div>`;
+}
+
+// ── INIT ──
+cargarDatos();
+</script>
+</body>
+</html>
