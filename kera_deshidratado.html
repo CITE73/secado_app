@@ -305,7 +305,7 @@ tr:nth-child(even) td{background:#FAFAF8}
 // ══════════════════════════════════════════════════
 //  CONFIG
 // ══════════════════════════════════════════════════
-const URL_DEFAULT = "URL_APPS_SCRIPT_KERA_PENDIENTE_DE_DEPLOY";
+const URL_DEFAULT = "https://script.google.com/macros/s/AKfycbz7NYd8Z7OARFNes31d_Ti7OMm9RVZvg1oQuT3CFlGkOSKogHU0Cmt4EJdzlReYvE56rw/exec";
 function getURL(){ return (JSON.parse(localStorage.getItem('apd_cfg')||'{}').url)||URL_DEFAULT; }
 function abrirConfig(){ document.getElementById('cfg-url').value=getURL(); document.getElementById('modal-cfg').classList.add('open'); }
 function cerrarConfig(){ document.getElementById('modal-cfg').classList.remove('open'); }
